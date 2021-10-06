@@ -1,18 +1,18 @@
 package utils.file;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 public final class FileToHex {
     private static final String NEW_LINE = System.lineSeparator();
     private static final String UNKNOWN_CHARACTER = ".";
 
-    public static String fileToHex(Path p) {
-        if (Files.notExists(p)) {
-            throw new IllegalArgumentException("File not found! " + p);
-        }
+    public static String hexdump(String path) {
+        File f = new File(path);
+        if (!f.exists())
+            throw new IllegalArgumentException("File not found! " + f.getPath());
 
         StringBuilder result = new StringBuilder();
         StringBuilder hex = new StringBuilder();
@@ -22,11 +22,11 @@ public final class FileToHex {
         int value;
 
         // path to inputstream....
-        try (InputStream inputStream = Files.newInputStream(p)) {
+        try (InputStream inputStream = new FileInputStream(f)) {
 
             while ((value = inputStream.read()) != -1) {
 
-                hex.append(String.format("%02X ", value));
+                hex.append(String.format("%02X", value));
 
                 //If the character is unable to convert, just prints a dot "."
                 if (!Character.isISOControl(value)) {
@@ -57,5 +57,24 @@ public final class FileToHex {
         }
 
         return result.toString();
+    }
+
+    public static String fileToHexString(String path) {
+        File f = new File(path);
+        if (!f.exists())
+            throw new IllegalArgumentException("File not found! " + f.getPath());
+
+        StringBuilder hex = new StringBuilder();
+        int value;
+
+        // path to inputstream....
+        try (InputStream inputStream = new FileInputStream(f)) {
+            while ((value = inputStream.read()) != -1)
+                hex.append(String.format("%02X", value));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return hex.toString();
     }
 }
