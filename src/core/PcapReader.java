@@ -1,11 +1,14 @@
 package core;
 
+import core.formats.Pcap;
 import utils.file.FileToHex;
 
 public class PcapReader {
-    PcapReader(final String pcap) {
-        String hexString = FileToHex.fileToHexString(pcap);
-        System.out.println(hexString);
+    private Pcap pcap;
+
+    PcapReader(final String pcapPath) {
+        String hexString = FileToHex.fileToHexString(pcapPath);
+
     }
 
     public static void main(String[] args) {
