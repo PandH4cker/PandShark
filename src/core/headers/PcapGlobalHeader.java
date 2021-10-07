@@ -25,6 +25,22 @@ public class PcapGlobalHeader {
         this.uNetwork = uNetwork;
     }
 
+    @Override
+    public String toString() {
+        try {
+            return "** Global Header **\n" +
+            "Magic Number = "+magicNumber+
+            "\nVersion Major = " + uVersionMajor+
+            "\nVersion Minor = " + uVersionMinor+
+            "\nThis Zone = " + thisZone+
+            "\nAccuracy of Timestamp = " + uSigFigs+
+            "\nMax length of captured packet = " + uSnapLen + " bytes"+
+            "\nData Link Type = " + uNetwork + " (" + LinkLayerHeader.fromDataLinkType(uNetwork) + ")";
+        } catch (UnknownLinkLayerHeader e) {
+            return null;
+        }
+    }
+
     public String getMagicNumber() {
         return magicNumber;
     }
