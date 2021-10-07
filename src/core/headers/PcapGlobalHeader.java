@@ -1,22 +1,22 @@
 package core.headers;
 
 public class PcapGlobalHeader {
-    private Integer uMagicNumber;
-    private Integer uVersionMajor;
-    private Integer uVersionMinor;
-    private Integer thisZone;
-    private Integer uSigFigs;
-    private Integer uSnapLen;
-    private Integer uNetwork;
+    private String magicNumber; //32 bits
+    private Integer uVersionMajor; //16 bits
+    private Integer uVersionMinor; //16 bits
+    private Integer thisZone; //32 bits
+    private Integer uSigFigs; //32 bits
+    private Integer uSnapLen; //32 bits
+    private Integer uNetwork; //32 bits
 
-    public PcapGlobalHeader(final Integer uMagicNumber,
+    public PcapGlobalHeader(final String magicNumber,
                             final Integer uVersionMajor,
                             final Integer uVersionMinor,
                             final Integer thisZone,
                             final Integer uSigFigs,
                             final Integer uSnapLen,
                             final Integer uNetwork) {
-        this.uMagicNumber = uMagicNumber;
+        this.magicNumber = magicNumber;
         this.uVersionMajor = uVersionMajor;
         this.uVersionMinor = uVersionMinor;
         this.thisZone = thisZone;
@@ -25,12 +25,12 @@ public class PcapGlobalHeader {
         this.uNetwork = uNetwork;
     }
 
-    public Integer getuMagicNumber() {
-        return uMagicNumber;
+    public String getMagicNumber() {
+        return magicNumber;
     }
 
-    public void setuMagicNumber(Integer uMagicNumber) {
-        this.uMagicNumber = uMagicNumber;
+    public void setMagicNumber(String magicNumber) {
+        this.magicNumber = magicNumber;
     }
 
     public Integer getuVersionMajor() {
