@@ -1,12 +1,7 @@
 package core.formats;
 
 import core.headers.*;
-import utils.bytes.Bytefier;
 import utils.bytes.Swapper;
-import utils.hex.Hexlifier;
-
-import java.io.InputStream;
-import java.util.Arrays;
 import java.util.HashMap;
 
 
@@ -92,14 +87,13 @@ public class Pcap {
         );
 
         System.out.println(pcapGlobalHeader);
-        System.out.println("** Packet Header **");
 
         //Packet Header
         Integer uTsSec, uTsUsec, uIncLen, uOrigLen;
         for(; i < offset + 8; ++i)
             hex.append(hexString.charAt(i));
         uTsSec = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode(Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x"+Swapper.swappedHexString(hex.toString())) :
                 Integer.decode(hex.toString());
         hex.setLength(0);
         offset = i;
@@ -107,7 +101,7 @@ public class Pcap {
         for(; i < offset + 8; ++i)
             hex.append(hexString.charAt(i));
         uTsUsec = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode(Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x"+Swapper.swappedHexString(hex.toString())) :
                 Integer.decode(hex.toString());
         hex.setLength(0);
         offset = i;
@@ -128,8 +122,20 @@ public class Pcap {
         hex.setLength(0);
         offset = i;
 
-        System.out.println(uTsSec + " " + uTsUsec + " " + uIncLen + " " + uOrigLen);
+        PcapPacketHeader packetHeader = new PcapPacketHeader(uTsSec, uTsUsec, uIncLen, uOrigLen);
+        System.out.println(packetHeader);
 
+        /*String preambul;
+
+        for(; i < offset + 25; ++i)
+            hex.append(hexString.charAt(i));
+        preambul = magicNumber.equals(SWAPPED_HEX) ?
+                Swapper.swappedHexString(hex.toString()) :
+                hex.toString();
+        hex.setLength(0);
+        offset = i;
+
+        System.out.println(preambul);*/
         return null;
     }
 }

@@ -1,10 +1,10 @@
 package core.headers;
 
 public class PcapPacketHeader {
-    private Integer uTsSec;
-    private Integer uTsUsec;
-    private Integer uInclLen;
-    private Integer uOrigLen;
+    private Integer uTsSec; //32 bits
+    private Integer uTsUsec; //32 bits
+    private Integer uInclLen; //32 bits
+    private Integer uOrigLen; //32 bits
 
     public PcapPacketHeader(final Integer uTsSec,
                             final Integer uTsUsec,
@@ -14,6 +14,15 @@ public class PcapPacketHeader {
         this.uTsUsec = uTsUsec;
         this.uInclLen = uInclLen;
         this.uOrigLen = uOrigLen;
+    }
+
+    @Override
+    public String toString() {
+        return "** Packet Header **\n" +
+                "Timestamp (s) = " + this.uTsSec +
+                "\nTimestamp (µs) = " + this.uTsUsec +
+                "\nIncluded Length = " + this.uInclLen + " bytes" +
+                "\nOriginal Length = " + this.uOrigLen + " bytes";
     }
 
     public Integer getuTsSec() {
