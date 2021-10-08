@@ -1,6 +1,6 @@
 package protocols.icmp;
 
-import core.headers.PcapPacketData;
+import protocols.PcapPacketData;
 
 public class ICMP extends PcapPacketData {
     private Integer type;

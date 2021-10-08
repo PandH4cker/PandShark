@@ -1,4 +1,6 @@
-package core.headers;
+package core.headers.pcap;
+
+import java.util.Date;
 
 public class PcapPacketHeader {
     private Integer uTsSec; //32 bits
@@ -19,7 +21,7 @@ public class PcapPacketHeader {
     @Override
     public String toString() {
         return "** Packet Header **\n" +
-                "Timestamp (s) = " + this.uTsSec +
+                "Timestamp (s) = " + uTsSec + " ("+ new Date((long)this.uTsSec * 1000) + ")" +
                 "\nTimestamp (µs) = " + this.uTsUsec +
                 "\nIncluded Length = " + this.uInclLen + " bytes" +
                 "\nOriginal Length = " + this.uOrigLen + " bytes";

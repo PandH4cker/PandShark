@@ -1,4 +1,4 @@
-package core.headers;
+package protocols;
 
 public abstract class PcapPacketData {
     private Integer id;

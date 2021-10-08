@@ -1,7 +1,16 @@
 package core.formats;
 
-import core.headers.*;
+import core.headers.ethernet.EtherType;
+import core.headers.ethernet.EthernetHeader;
+import core.headers.ethernet.UnknownEtherType;
+import core.headers.pcap.LinkLayerHeader;
+import core.headers.pcap.PcapGlobalHeader;
+import core.headers.pcap.PcapPacketHeader;
+import core.headers.pcap.UnknownLinkLayerHeader;
+import protocols.PcapPacketData;
 import utils.bytes.Swapper;
+
+import java.util.Arrays;
 import java.util.HashMap;
 
 
@@ -37,48 +46,48 @@ public class Pcap {
         for(; i < offset + 4; ++i)
             hex.append(hexString.charAt(i));
         uVersionMajor = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode(Swapper.swappedHexString(hex.toString())) :
-                Integer.decode(hex.toString());
+                Integer.decode("0x" + Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x" + hex);
         hex.setLength(0);
         offset = i;
 
         for(; i < offset + 4; ++i)
             hex.append(hexString.charAt(i));
         uVersionMinor = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode(Swapper.swappedHexString(hex.toString())) :
-                Integer.decode(hex.toString());
+                Integer.decode("0x" + Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x" + hex);
         hex.setLength(0);
         offset = i;
 
         for(; i < offset + 8; ++i)
             hex.append(hexString.charAt(i));
         thisZone = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode(Swapper.swappedHexString(hex.toString())) :
-                Integer.decode(hex.toString());
+                Integer.decode("0x" + Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x" + hex);
         hex.setLength(0);
         offset = i;
 
         for(; i < offset + 8; ++i)
             hex.append(hexString.charAt(i));
         uSigFigs = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode(Swapper.swappedHexString(hex.toString())) :
-                Integer.decode(hex.toString());
+                Integer.decode("0x" + Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x" + hex);
         hex.setLength(0);
         offset = i;
 
         for(; i < offset + 8; ++i)
             hex.append(hexString.charAt(i));
         uSnapLen = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode(Swapper.swappedHexString(hex.toString())) :
-                Integer.decode(hex.toString());
+                Integer.decode("0x" + Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x" + hex);
         hex.setLength(0);
         offset = i;
 
         for(; i < offset + 8; ++i)
             hex.append(hexString.charAt(i));
         uNetwork = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode(Swapper.swappedHexString(hex.toString())) :
-                Integer.decode(hex.toString());
+                Integer.decode("0x" + Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x" + hex);
         hex.setLength(0);
         offset = i;
 
@@ -93,49 +102,74 @@ public class Pcap {
         for(; i < offset + 8; ++i)
             hex.append(hexString.charAt(i));
         uTsSec = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode("0x"+Swapper.swappedHexString(hex.toString())) :
-                Integer.decode(hex.toString());
+                Integer.decode("0x" + Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x" + hex);
         hex.setLength(0);
         offset = i;
 
         for(; i < offset + 8; ++i)
             hex.append(hexString.charAt(i));
         uTsUsec = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode("0x"+Swapper.swappedHexString(hex.toString())) :
-                Integer.decode(hex.toString());
+                Integer.decode("0x" + Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x" + hex);
         hex.setLength(0);
         offset = i;
 
         for(; i < offset + 8; ++i)
             hex.append(hexString.charAt(i));
         uIncLen = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode(Swapper.swappedHexString(hex.toString())) :
-                Integer.decode(hex.toString());
+                Integer.decode("0x" + Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x" + hex);
         hex.setLength(0);
         offset = i;
 
         for(; i < offset + 8; ++i)
             hex.append(hexString.charAt(i));
         uOrigLen = magicNumber.equals(SWAPPED_HEX) ?
-                Integer.decode(Swapper.swappedHexString(hex.toString())) :
-                Integer.decode(hex.toString());
+                Integer.decode("0x" + Swapper.swappedHexString(hex.toString())) :
+                Integer.decode("0x" + hex);
         hex.setLength(0);
         offset = i;
 
         PcapPacketHeader packetHeader = new PcapPacketHeader(uTsSec, uTsUsec, uIncLen, uOrigLen);
         System.out.println(packetHeader);
 
-        /*String preambul;
+        String destinationIP, sourceIP, etherType;
 
-        for(; i < offset + 25; ++i)
+        for(; i < offset + 12; ++i)
             hex.append(hexString.charAt(i));
-        preambul = magicNumber.equals(SWAPPED_HEX) ?
-                Swapper.swappedHexString(hex.toString()) :
-                hex.toString();
+        destinationIP = hex.toString();
         hex.setLength(0);
         offset = i;
 
-        System.out.println(preambul);*/
+        for(; i < offset + 12; ++i)
+            hex.append(hexString.charAt(i));
+        sourceIP = hex.toString();
+        hex.setLength(0);
+        offset = i;
+
+        for(; i < offset + 4; ++i)
+            hex.append(hexString.charAt(i));
+        etherType = hex.toString();
+        hex.setLength(0);
+        offset = i;
+
+        try {
+            System.out.println("** Packet Data ("+ LinkLayerHeader.fromDataLinkType(uNetwork)+") **");
+        } catch (UnknownLinkLayerHeader e) {
+            e.printStackTrace();
+        }
+
+        EthernetHeader ethernetHeader = new EthernetHeader(destinationIP, sourceIP, etherType);
+        System.out.println(ethernetHeader);
+
+        try {
+            System.out.println("** Packet Data ("+ EtherType.fromCodeType(etherType)+") **");
+        } catch (UnknownEtherType e) {
+            e.printStackTrace();
+        }
+
+        
         return null;
     }
 }

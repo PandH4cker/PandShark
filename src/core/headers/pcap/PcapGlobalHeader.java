@@ -1,4 +1,4 @@
-package core.headers;
+package core.headers.pcap;
 
 public class PcapGlobalHeader {
     private String magicNumber; //32 bits

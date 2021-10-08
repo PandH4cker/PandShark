@@ -1,4 +1,4 @@
-package core.headers;
+package core.headers.pcap;
 
 public enum LinkLayerHeader {
     NULL(0, "NULL"),

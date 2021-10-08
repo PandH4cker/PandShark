@@ -7,9 +7,7 @@ public class PcapReader {
     private Pcap pcap;
 
     PcapReader(final String pcapPath) {
-        //System.out.println(FileToHex.hexdump(pcapPath));
         String hexString = FileToHex.fileToHexString(pcapPath);
-        System.out.println(hexString);
         Pcap pcap = Pcap.fromHexString(hexString);
     }
 
