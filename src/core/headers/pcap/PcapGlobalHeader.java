@@ -7,7 +7,7 @@ public class PcapGlobalHeader {
     private Integer thisZone; //32 bits
     private Integer uSigFigs; //32 bits
     private Integer uSnapLen; //32 bits
-    private Integer uNetwork; //32 bits
+    private LinkLayerHeader uNetwork; //32 bits
 
     public PcapGlobalHeader(final String magicNumber,
                             final Integer uVersionMajor,
@@ -22,12 +22,15 @@ public class PcapGlobalHeader {
         this.thisZone = thisZone;
         this.uSigFigs = uSigFigs;
         this.uSnapLen = uSnapLen;
-        this.uNetwork = uNetwork;
+        try {
+            this.uNetwork = LinkLayerHeader.fromDataLinkType(uNetwork);
+        } catch (UnknownLinkLayerHeader e) {
+            this.uNetwork = LinkLayerHeader.NULL;
+        }
     }
 
     @Override
     public String toString() {
-        try {
             return "** Global Header **\n" +
             "Magic Number = "+magicNumber+
             "\nVersion Major = " + uVersionMajor+
@@ -35,10 +38,7 @@ public class PcapGlobalHeader {
             "\nThis Zone = " + thisZone+
             "\nAccuracy of Timestamp = " + uSigFigs+
             "\nMax length of captured packet = " + uSnapLen + " bytes"+
-            "\nData Link Type = " + uNetwork + " (" + LinkLayerHeader.fromDataLinkType(uNetwork) + ")";
-        } catch (UnknownLinkLayerHeader e) {
-            return null;
-        }
+            "\nData Link Type = " + uNetwork.getDataLinkType() + " (" + uNetwork + ")";
     }
 
     public String getMagicNumber() {
@@ -89,11 +89,11 @@ public class PcapGlobalHeader {
         this.uSnapLen = uSnapLen;
     }
 
-    public Integer getuNetwork() {
+    public LinkLayerHeader getuNetwork() {
         return uNetwork;
     }
 
-    public void setuNetwork(Integer uNetwork) {
+    public void setuNetwork(LinkLayerHeader uNetwork) {
         this.uNetwork = uNetwork;
     }
 }

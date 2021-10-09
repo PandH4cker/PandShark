@@ -130,6 +130,14 @@ public enum LinkLayerHeader {
         return this.name;
     }
 
+    public Integer getDataLinkType() {
+        return dataLinkType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public static LinkLayerHeader fromDataLinkType(final Integer dataLinkType) throws UnknownLinkLayerHeader {
         for(LinkLayerHeader linkLayerHeader : LinkLayerHeader.values())
             if (linkLayerHeader.dataLinkType.equals(dataLinkType))

@@ -1,25 +1,26 @@
 package core.headers.ethernet;
 
-import core.headers.pcap.LinkLayerHeader;
-import core.headers.pcap.UnknownLinkLayerHeader;
-
 import java.util.Arrays;
 
 public class EthernetHeader {
     private String destinationIP; //6 bytes
     private String sourceIP; //6 bytes
-    private String etherType; //2 bytes
+    private EtherType etherType; //2 bytes
     private String reserved; //2 bytes
-    private String etherType2; //2 bytes
+    private EtherType etherType2; //2 bytes
 
     public EthernetHeader(final String destinationIP,
                           final String sourceIP,
                           final String etherType) {
         this.destinationIP = destinationIP;
         this.sourceIP = sourceIP;
-        this.etherType = etherType;
+        try {
+            this.etherType = EtherType.fromCodeType(etherType);
+        } catch (UnknownEtherType e) {
+            e.printStackTrace();
+        }
         this.reserved = "";
-        this.etherType2 = "";
+        this.etherType2 = null;
     }
 
     public EthernetHeader(final String destinationIP,
@@ -29,20 +30,24 @@ public class EthernetHeader {
                           final String etherType2) {
         this.destinationIP = destinationIP;
         this.sourceIP = sourceIP;
-        this.etherType = etherType;
+        try {
+            this.etherType = EtherType.fromCodeType(etherType);
+        } catch (UnknownEtherType e) {
+            e.printStackTrace();
+        }
         this.reserved = reserved;
-        this.etherType2 = etherType2;
+        try {
+            this.etherType2 = EtherType.fromCodeType(etherType2);
+        } catch (UnknownEtherType e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public String toString() {
-        try {
             return "Destination IP = " + String.join(":", Arrays.asList(destinationIP.split("(?<=\\G.{2})"))) +
             "\nSource IP = " + String.join(":", Arrays.asList(sourceIP.split("(?<=\\G.{2})"))) +
-            "\nEtherType = " + etherType + " (" + EtherType.fromCodeType(etherType) + ")";
-        } catch (UnknownEtherType e) {
-            return null;
-        }
+            "\nEtherType = " + etherType.getCodeType() + " (" + etherType + ")";
     }
 
     public String getDestinationIP() {
@@ -61,11 +66,11 @@ public class EthernetHeader {
         this.sourceIP = sourceIP;
     }
 
-    public String getEtherType() {
+    public EtherType getEtherType() {
         return etherType;
     }
 
-    public void setEtherType(String etherType) {
+    public void setEtherType(EtherType etherType) {
         this.etherType = etherType;
     }
 
@@ -77,11 +82,11 @@ public class EthernetHeader {
         this.reserved = reserved;
     }
 
-    public String getEtherType2() {
+    public EtherType getEtherType2() {
         return etherType2;
     }
 
-    public void setEtherType2(String etherType2) {
+    public void setEtherType2(EtherType etherType2) {
         this.etherType2 = etherType2;
     }
 }
