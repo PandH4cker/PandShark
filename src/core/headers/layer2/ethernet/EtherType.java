@@ -1,4 +1,6 @@
-package core.headers.ethernet;
+package core.headers.layer2.ethernet;
+
+import core.headers.layer2.ethernet.exceptions.UnknownEtherType;
 
 public enum EtherType {
     DEC("0x6000", "DEC"),

@@ -1,5 +1,7 @@
 package protocols.icmp;
 
+import protocols.icmp.exceptions.UnknownTypeCodeCombination;
+
 public enum TypeCodeCombination {
     //Type 0
     ECHO_REPLY(0,0, "Echo Reply"),

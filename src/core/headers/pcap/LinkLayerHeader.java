@@ -1,5 +1,7 @@
 package core.headers.pcap;
 
+import core.headers.pcap.exceptions.UnknownLinkLayerHeader;
+
 public enum LinkLayerHeader {
     NULL(0, "NULL"),
     ETHERNET(1, "Ethernet"),

@@ -1,5 +1,7 @@
 package core.headers.pcap;
 
+import core.headers.pcap.exceptions.UnknownLinkLayerHeader;
+
 public class PcapGlobalHeader {
     private String magicNumber; //32 bits
     private Integer uVersionMajor; //16 bits

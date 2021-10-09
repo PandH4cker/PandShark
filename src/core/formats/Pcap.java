@@ -1,6 +1,8 @@
 package core.formats;
 
-import core.headers.ethernet.EthernetHeader;
+import core.headers.layer2.ethernet.EtherType;
+import core.headers.layer2.ethernet.EthernetHeader;
+import core.headers.layer3.ip.v4.IPv4Header;
 import core.headers.pcap.LinkLayerHeader;
 import core.headers.pcap.PcapGlobalHeader;
 import core.headers.pcap.PcapPacketHeader;
@@ -79,7 +81,52 @@ public class Pcap {
                                     pcapGlobalHeader.getuNetwork())
                     );
                     System.out.println(ethernetHeader);
-                    offset += pcapPacketHeader.getuInclLen() * 2 - 28;
+
+                    switch (ethernetHeader.getEtherType()) {
+                        case IPV4 -> {
+                            System.out.println("** Packet Data ("+ethernetHeader.getEtherType()+") **");
+                            IPv4Header iPv4Header = new IPv4Header(
+                                    read(offset, 2, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork()).substring(2),
+                                    read(offset, 2, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork()),
+                                    Integer.decode(read(offset, 4, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork())),
+                                    Integer.decode(read(offset, 4, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork())),
+                                    read(offset, 4, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork()).substring(2),
+                                    Integer.decode(read(offset, 2, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork())),
+                                    Integer.decode(read(offset, 2, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork())),
+                                    read(offset, 4, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork()),
+                                    read(offset, 8, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork()).substring(2),
+                                    read(offset, 8, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork()).substring(2)
+                            );
+                            System.out.println(iPv4Header);
+                        }
+                        default -> {
+                            System.err.println("Ether Type ("+ethernetHeader.getEtherType()+") not implemented !");
+                            System.out.println("Skipping Packet Data...");
+                            offset += pcapPacketHeader.getuInclLen() * 2 - 28 -
+                                    (ethernetHeader.getEtherType() == EtherType.RARP ? 56 : 40);
+                        }
+                    }
+                    offset += pcapPacketHeader.getuInclLen() * 2 - 28 - 40;
                 }
                 default -> {
                     System.err.println("Data Link Type ("+pcapGlobalHeader.getuNetwork()+") not implemented !");

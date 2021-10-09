@@ -1,8 +1,11 @@
-package core.headers.ethernet;
+package core.headers.layer2.ethernet;
+
+import core.headers.layer2.Layer2Protocol;
+import core.headers.layer2.ethernet.exceptions.UnknownEtherType;
 
 import java.util.Arrays;
 
-public class EthernetHeader {
+public class EthernetHeader implements Layer2Protocol {
     private String destinationIP; //6 bytes
     private String sourceIP; //6 bytes
     private EtherType etherType; //2 bytes
