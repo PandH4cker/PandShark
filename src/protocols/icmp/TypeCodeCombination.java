@@ -87,6 +87,14 @@ public enum TypeCodeCombination {
         this.name = name;
     }
 
+    public Integer getType() {
+        return type;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
     @Override
     public String toString() {
         return this.name;

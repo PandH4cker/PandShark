@@ -9,7 +9,7 @@ public final class Hexlifier {
         for (int i = 0; i < l; i += 2) data[i / 2] =
                 (byte) ((Character.digit(hexString.charAt(i), 16) << 4) +
                         Character.digit(hexString.charAt(i + 1), 16));
-        return new String(data);
+        return new String(data).replaceAll("[\\p{C}]", "?");
     }
 
     public static String byteArraytoHexString(Byte[] bytes) {
