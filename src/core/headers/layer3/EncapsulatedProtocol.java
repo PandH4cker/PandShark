@@ -16,6 +16,11 @@ public enum EncapsulatedProtocol {
         this.name = name;
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
+
     public Integer getPort() {
         return port;
     }
