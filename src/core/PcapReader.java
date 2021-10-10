@@ -12,7 +12,7 @@ public class PcapReader {
 
     PcapReader(final String pcapPath) {
         String hexString = FileToHex.fileToHexString(pcapPath);
-        Pcap pcap = Pcap.fromHexString(hexString);
+        this.pcap = Pcap.fromHexString(hexString);
         System.out.println(pcap.getData().size() + " packets red");
         int index = 1;
         for (PcapPacketData d : pcap.getData().values()) {
