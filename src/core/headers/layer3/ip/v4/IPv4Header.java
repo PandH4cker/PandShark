@@ -9,6 +9,8 @@ import utils.integers.Intify;
 import utils.net.IP;
 
 public class IPv4Header implements Layer3Protocol {
+    private static final Integer SIZE = 20;
+
     private IPVersion version; // 4 bits
     private Integer internetHeaderLength; // 4 bits
     private String service; // 1 byte
@@ -64,6 +66,10 @@ public class IPv4Header implements Layer3Protocol {
         } catch (UnknownPort e) {
             this.protocol = null;
         }
+    }
+
+    public static Integer getSIZE() {
+        return SIZE;
     }
 
     @Override

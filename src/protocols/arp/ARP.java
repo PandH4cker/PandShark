@@ -8,6 +8,8 @@ import utils.net.IP;
 import utils.net.MAC;
 
 public class ARP extends PcapPacketData {
+    private static final Integer SIZE = 28;
+
     private HardwareType hardwareType;
     private ProtocolType protocolType;
     private HardwareAddressLength hardwareAddressLength;
@@ -52,6 +54,10 @@ public class ARP extends PcapPacketData {
         this.trailer = trailer;
     }
 
+    public static Integer getSIZE() {
+        return SIZE;
+    }
+
     @Override
     public String toString() {
         return "Hardware type = " + this.hardwareType +
@@ -70,8 +76,11 @@ public class ARP extends PcapPacketData {
             case REQUEST -> {
                 return "Who has " + this.getTargetInternetAddress() + "? Tell " + this.senderInternetAddress;
             }
+            case REPLY -> {
+                return this.senderInternetAddress + " is at " + this.senderHardwareAddress;
+            }
             default -> {
-                return "";
+                return null;
             }
         }
     }

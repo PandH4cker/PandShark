@@ -7,6 +7,8 @@ import utils.net.MAC;
 import java.util.Arrays;
 
 public class EthernetHeader implements Layer2Protocol {
+    private static final Integer SIZE = 14;
+
     private String destinationIP; //6 bytes
     private String sourceIP; //6 bytes
     private EtherType etherType; //2 bytes
@@ -45,6 +47,10 @@ public class EthernetHeader implements Layer2Protocol {
         } catch (UnknownEtherType e) {
             e.printStackTrace();
         }
+    }
+
+    public static Integer getSIZE() {
+        return SIZE;
     }
 
     @Override

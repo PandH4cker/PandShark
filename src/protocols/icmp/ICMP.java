@@ -7,6 +7,8 @@ import protocols.icmp.exceptions.UnknownTypeCodeCombination;
 import utils.hex.Hexlifier;
 
 public class ICMP extends PcapPacketData {
+    private static final Integer SIZE = 8;
+
     private TypeCodeCombination typeCodeCombination;
     private String checksum;
     private Integer dataTimestamp;

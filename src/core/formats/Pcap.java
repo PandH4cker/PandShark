@@ -149,10 +149,13 @@ public class Pcap {
                                     );
                                     data.put(pcapPacketHeader, icmp);
                                 }
+                                /*case UDP -> {
+
+                                }*/
                                 default -> {
                                     System.err.println("Encapsulated protocol ("+iPv4Header.getProtocol()+") not implemented !");
                                     System.err.println("Skipping Packet Data...");
-                                    offset += pcapPacketHeader.getuInclLen() * 2 - 28 - 40;
+                                    offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() - IPv4Header.getSIZE());
                                 }
                             }
                         }
@@ -178,15 +181,14 @@ public class Pcap {
                                             llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                                     read(offset, 4, hexString,
                                             llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
-                                    read(offset, 18, hexString, llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()));
-                            //System.out.println("** Packet Data ARP **");
-                            //System.out.println(arp);
+                                    pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() - ARP.getSIZE() > 0 ?
+                                            read(offset, 18, hexString, llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()) : "" );
                             data.put(pcapPacketHeader, arp);
                         }
                         default -> {
                             System.err.println("Ether Type ("+ethernetHeader.getEtherType()+") not implemented !");
                             System.err.println("Skipping Packet Data...");
-                            offset += pcapPacketHeader.getuInclLen() * 2 - 28;
+                            offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE());
                         }
                     }
                     //offset += pcapPacketHeader.getuInclLen() * 2 - 28 - 40;
@@ -194,7 +196,7 @@ public class Pcap {
                 default -> {
                     System.err.println("Data Link Type ("+pcapGlobalHeader.getuNetwork()+") not implemented !");
                     System.err.println("Skipping Packet Data...");
-                    offset += pcapPacketHeader.getuInclLen() * 2;
+                    offset += 2 * pcapPacketHeader.getuInclLen();
                 }
             }
         }
