@@ -4,6 +4,7 @@ import core.formats.Pcap;
 import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.ip.v4.IPv4Header;
 import protocols.PcapPacketData;
+import protocols.arp.ARP;
 import protocols.icmp.ICMP;
 import utils.file.FileToHex;
 
@@ -34,6 +35,11 @@ public class PcapReader {
                                                 case TCP -> null;
                                                 case UDP -> null;
                                             };
+                                }
+                                case ARP -> {
+                                    ARP arp = (ARP) d;
+                                    yield arp.getSenderHardwareAddress() + " -> " + arp.getTargetHardwareAddress() +
+                                            "\t ARP " + arp.getInfo();
                                 }
                                 default -> null;
                             };

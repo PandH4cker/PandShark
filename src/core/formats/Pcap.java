@@ -6,6 +6,7 @@ import core.headers.pcap.LinkLayerHeader;
 import core.headers.pcap.PcapGlobalHeader;
 import core.headers.pcap.PcapPacketHeader;
 import protocols.PcapPacketData;
+import protocols.arp.ARP;
 import protocols.icmp.ICMP;
 import utils.bytes.Swapper;
 
@@ -154,6 +155,33 @@ public class Pcap {
                                     offset += pcapPacketHeader.getuInclLen() * 2 - 28 - 40;
                                 }
                             }
+                        }
+                        case ARP -> {
+                            ARP arp = new ARP(null,
+                                    null,
+                                    ethernetHeader,
+                                    null,
+                                    Integer.decode(read(offset, 2, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                                    read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork()),
+                                    Integer.decode(read(offset, 1, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                                    Integer.decode(read(offset, 1, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                                    Integer.decode(read(offset, 2, hexString,llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                                    read(offset, 6, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
+                                    read(offset, 4, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                                            pcapGlobalHeader.getuNetwork()).substring(2),
+                                    read(offset, 6, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
+                                    read(offset, 4, hexString,
+                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
+                                    read(offset, 18, hexString, llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()));
+                            //System.out.println("** Packet Data ARP **");
+                            //System.out.println(arp);
+                            data.put(pcapPacketHeader, arp);
                         }
                         default -> {
                             System.err.println("Ether Type ("+ethernetHeader.getEtherType()+") not implemented !");

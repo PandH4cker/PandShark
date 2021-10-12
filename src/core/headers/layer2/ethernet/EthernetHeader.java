@@ -2,6 +2,7 @@ package core.headers.layer2.ethernet;
 
 import core.headers.layer2.Layer2Protocol;
 import core.headers.layer2.ethernet.exceptions.UnknownEtherType;
+import utils.net.MAC;
 
 import java.util.Arrays;
 
@@ -31,8 +32,8 @@ public class EthernetHeader implements Layer2Protocol {
                           final String etherType,
                           final String reserved,
                           final String etherType2) {
-        this.destinationIP = destinationIP;
-        this.sourceIP = sourceIP;
+        this.destinationIP = MAC.fromHexString(destinationIP);
+        this.sourceIP = MAC.fromHexString(sourceIP);
         try {
             this.etherType = EtherType.fromCodeType(etherType);
         } catch (UnknownEtherType e) {
@@ -48,8 +49,8 @@ public class EthernetHeader implements Layer2Protocol {
 
     @Override
     public String toString() {
-            return "Destination IP = " + String.join(":", Arrays.asList(destinationIP.split("(?<=\\G.{2})"))) +
-            "\nSource IP = " + String.join(":", Arrays.asList(sourceIP.split("(?<=\\G.{2})"))) +
+            return "Destination IP = " + destinationIP +
+            "\nSource IP = " + sourceIP +
             "\nEtherType = " + etherType.getCodeType() + " (" + etherType + ")";
     }
 

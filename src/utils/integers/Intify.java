@@ -1,6 +1,6 @@
 package utils.integers;
 
-public class Intify {
+public final class Intify {
     public static int fromByteArray(byte[] bytes) {
         int val = 0;
         if(bytes.length > 4) throw new RuntimeException("Too big to fit in int");

@@ -1,6 +1,6 @@
 package utils.net;
 
-public class IP {
+public final class IP {
     public static String fromHexString(final String hexString) {
         StringBuilder ip = new StringBuilder();
         for(int i = 0; i < hexString.length(); i = i + 2)
