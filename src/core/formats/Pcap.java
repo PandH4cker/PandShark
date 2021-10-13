@@ -164,15 +164,13 @@ public class Pcap {
                                             read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
                                                     pcapGlobalHeader.getuNetwork())
                                     );
-                                    System.out.println("** Packet Data UDP **");
-                                    System.out.println("Source Port = " + udp.getSourcePort());
-                                    System.out.println("Destination Port = " + udp.getDestinationPort());
-                                    System.out.println("Length = " + udp.getLength());
-                                    System.out.println("Checksum = " + udp.getChecksum());
                                     offset += 2 * (pcapPacketHeader.getuInclLen() -
                                             EthernetHeader.getSIZE() -
                                             IPv4Header.getSIZE() -
                                             UDP.getSIZE());
+                                }
+                                case TCP -> {
+
                                 }
                                 default -> {
                                     System.err.println("Encapsulated protocol ("+iPv4Header.getProtocol()+") not implemented !");
@@ -213,7 +211,6 @@ public class Pcap {
                             offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE());
                         }
                     }
-                    //offset += pcapPacketHeader.getuInclLen() * 2 - 28 - 40;
                 }
                 default -> {
                     System.err.println("Data Link Type ("+pcapGlobalHeader.getuNetwork()+") not implemented !");

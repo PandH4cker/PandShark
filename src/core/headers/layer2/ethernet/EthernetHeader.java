@@ -23,7 +23,7 @@ public class EthernetHeader implements Layer2Protocol {
         try {
             this.etherType = EtherType.fromCodeType(etherType);
         } catch (UnknownEtherType e) {
-            e.printStackTrace();
+            this.etherType = EtherType.UNKNOWN;
         }
         this.reserved = "";
         this.etherType2 = null;
@@ -39,13 +39,13 @@ public class EthernetHeader implements Layer2Protocol {
         try {
             this.etherType = EtherType.fromCodeType(etherType);
         } catch (UnknownEtherType e) {
-            e.printStackTrace();
+            this.etherType = EtherType.UNKNOWN;
         }
         this.reserved = reserved;
         try {
             this.etherType2 = EtherType.fromCodeType(etherType2);
         } catch (UnknownEtherType e) {
-            e.printStackTrace();
+            this.etherType2 = EtherType.UNKNOWN;
         }
     }
 

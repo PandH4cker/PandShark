@@ -20,6 +20,14 @@ public class UDP implements Layer4Protocol {
         this.checksum = checksum;
     }
 
+    @Override
+    public String toString() {
+        return "Source Port = " + this.sourcePort +
+        "\nDestination Port = " + this.destinationPort +
+        "\nLength = " + this.length +
+        "\nChecksum = " + this.checksum;
+    }
+
     public static Integer getSIZE() {
         return SIZE;
     }

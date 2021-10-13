@@ -3,6 +3,7 @@ package core.headers.layer2.ethernet;
 import core.headers.layer2.ethernet.exceptions.UnknownEtherType;
 
 public enum EtherType {
+    UNKNOWN("0x0000", "UNKNOWN"),
     DEC("0x6000", "DEC"),
     DEC2("0x0609", "DEC"),
     XNS("0x0600", "XNS"),
