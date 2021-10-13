@@ -2,6 +2,7 @@ package core.formats;
 
 import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.ip.v4.IPv4Header;
+import core.headers.layer4.udp.UDP;
 import core.headers.pcap.LinkLayerHeader;
 import core.headers.pcap.PcapGlobalHeader;
 import core.headers.pcap.PcapPacketHeader;
@@ -149,9 +150,30 @@ public class Pcap {
                                     );
                                     data.put(pcapPacketHeader, icmp);
                                 }
-                                /*case UDP -> {
-
-                                }*/
+                                case UDP -> {
+                                    UDP udp = new UDP(
+                                            Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork())),
+                                            Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork())),
+                                            Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork())),
+                                            read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork())
+                                    );
+                                    System.out.println("** Packet Data UDP **");
+                                    System.out.println("Source Port = " + udp.getSourcePort());
+                                    System.out.println("Destination Port = " + udp.getDestinationPort());
+                                    System.out.println("Length = " + udp.getLength());
+                                    System.out.println("Checksum = " + udp.getChecksum());
+                                    offset += 2 * (pcapPacketHeader.getuInclLen() -
+                                            EthernetHeader.getSIZE() -
+                                            IPv4Header.getSIZE() -
+                                            UDP.getSIZE());
+                                }
                                 default -> {
                                     System.err.println("Encapsulated protocol ("+iPv4Header.getProtocol()+") not implemented !");
                                     System.err.println("Skipping Packet Data...");
