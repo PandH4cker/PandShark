@@ -2,6 +2,7 @@ package core.formats;
 
 import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.ip.v4.IPv4Header;
+import core.headers.layer4.tcp.TCP;
 import core.headers.layer4.udp.UDP;
 import core.headers.pcap.LinkLayerHeader;
 import core.headers.pcap.PcapGlobalHeader;
@@ -170,7 +171,50 @@ public class Pcap {
                                             UDP.getSIZE());
                                 }
                                 case TCP -> {
-
+                                    TCP tcp = new TCP(
+                                            Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork())),
+                                            Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork())),
+                                            Long.decode(read(offset, 4, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork())),
+                                            Long.decode(read(offset, 4, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork())),
+                                            read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork()).substring(2),
+                                            Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork())),
+                                            read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork()),
+                                            Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork()))
+                                    );
+                                    System.out.println("** Packet TCP **");
+                                    System.out.println("Source Port = " + tcp.getSourcePort());
+                                    System.out.println("Destination Port = " + tcp.getDestinationPort());
+                                    System.out.println("Sequence Number = " + tcp.getSequence());
+                                    System.out.println("Offset = " + tcp.getOffset());
+                                    System.out.println("TCP Flags = ");
+                                    System.out.println("\tURG = " + tcp.getFlags().getUrg());
+                                    System.out.println("\tACK = " + tcp.getFlags().getAck());
+                                    System.out.println("\tPSH = " + tcp.getFlags().getPsh());
+                                    System.out.println("\tRST = " + tcp.getFlags().getRst());
+                                    System.out.println("\tSYN = " + tcp.getFlags().getSyn());
+                                    System.out.println("\tFIN = " + tcp.getFlags().getFin());
+                                    System.out.println("Window = " + tcp.getWindow());
+                                    System.out.println("Checksum = " + tcp.getChecksum());
+                                    System.out.println("Pointer = " + tcp.getPointer());
+                                    offset += 2 * (pcapPacketHeader.getuInclLen() -
+                                            EthernetHeader.getSIZE() -
+                                            IPv4Header.getSIZE() -
+                                            TCP.getSIZE());
                                 }
                                 default -> {
                                     System.err.println("Encapsulated protocol ("+iPv4Header.getProtocol()+") not implemented !");
