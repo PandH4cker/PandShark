@@ -3,6 +3,8 @@ package core.headers.layer4.tcp;
 import core.headers.layer4.Layer4Protocol;
 import utils.bytes.Bytefier;
 
+import java.util.Arrays;
+
 public class TCP implements Layer4Protocol {
     private static final Integer SIZE = 20;
 
@@ -34,16 +36,17 @@ public class TCP implements Layer4Protocol {
         this.pointer = pointer;
 
         byte[] offResFlagsByteArray = Bytefier.hexStringToByteArray(offResFlags);
-        this.offset = (int) Bytefier.getFourthHighest(offResFlagsByteArray[0]);
+
+        this.offset = (offResFlagsByteArray[0] & 0xFF) >> 4;
         this.reserved = String.valueOf(Bytefier.getFourthLowest(offResFlagsByteArray[0])) +
-                Bytefier.getBit(offResFlagsByteArray[1], 0) +
-                Bytefier.getBit(offResFlagsByteArray[1], 1);
-        this.flags = new TCPFlags(Bytefier.getBit(offResFlagsByteArray[1], 2) != 0,
-                Bytefier.getBit(offResFlagsByteArray[1], 3) != 0,
+                Bytefier.getBit(offResFlagsByteArray[1], 7) +
+                Bytefier.getBit(offResFlagsByteArray[1], 6);
+        this.flags = new TCPFlags(Bytefier.getBit(offResFlagsByteArray[1], 5) != 0,
                 Bytefier.getBit(offResFlagsByteArray[1], 4) != 0,
-                Bytefier.getBit(offResFlagsByteArray[1], 5) != 0,
-                Bytefier.getBit(offResFlagsByteArray[1], 6) != 0,
-                Bytefier.getBit(offResFlagsByteArray[1], 7) != 0);
+                Bytefier.getBit(offResFlagsByteArray[1], 3) != 0,
+                Bytefier.getBit(offResFlagsByteArray[1], 2) != 0,
+                Bytefier.getBit(offResFlagsByteArray[1], 1) != 0,
+                Bytefier.getBit(offResFlagsByteArray[1], 0) != 0);
     }
 
     public static Integer getSIZE() {

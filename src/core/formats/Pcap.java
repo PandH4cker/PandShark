@@ -200,6 +200,7 @@ public class Pcap {
                                     System.out.println("Source Port = " + tcp.getSourcePort());
                                     System.out.println("Destination Port = " + tcp.getDestinationPort());
                                     System.out.println("Sequence Number = " + tcp.getSequence());
+                                    System.out.println("Ack Number = " + tcp.getAckNumber());
                                     System.out.println("Offset = " + tcp.getOffset());
                                     System.out.println("TCP Flags = ");
                                     System.out.println("\tURG = " + tcp.getFlags().getUrg());
