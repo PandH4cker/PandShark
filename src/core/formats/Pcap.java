@@ -196,22 +196,6 @@ public class Pcap {
                                                     llh -> llh == LinkLayerHeader.ETHERNET,
                                                     pcapGlobalHeader.getuNetwork()))
                                     );
-                                    System.out.println("** Packet TCP **");
-                                    System.out.println("Source Port = " + tcp.getSourcePort());
-                                    System.out.println("Destination Port = " + tcp.getDestinationPort());
-                                    System.out.println("Sequence Number = " + tcp.getSequence());
-                                    System.out.println("Ack Number = " + tcp.getAckNumber());
-                                    System.out.println("Offset = " + tcp.getOffset());
-                                    System.out.println("TCP Flags = ");
-                                    System.out.println("\tURG = " + tcp.getFlags().getUrg());
-                                    System.out.println("\tACK = " + tcp.getFlags().getAck());
-                                    System.out.println("\tPSH = " + tcp.getFlags().getPsh());
-                                    System.out.println("\tRST = " + tcp.getFlags().getRst());
-                                    System.out.println("\tSYN = " + tcp.getFlags().getSyn());
-                                    System.out.println("\tFIN = " + tcp.getFlags().getFin());
-                                    System.out.println("Window = " + tcp.getWindow());
-                                    System.out.println("Checksum = " + tcp.getChecksum());
-                                    System.out.println("Pointer = " + tcp.getPointer());
                                     offset += 2 * (pcapPacketHeader.getuInclLen() -
                                             EthernetHeader.getSIZE() -
                                             IPv4Header.getSIZE() -

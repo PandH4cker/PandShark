@@ -49,6 +49,25 @@ public class TCP implements Layer4Protocol {
                 Bytefier.getBit(offResFlagsByteArray[1], 0) != 0);
     }
 
+    @Override
+    public String toString() {
+        return "Source Port = " + this.sourcePort +
+        "\nDestination Port = " + this.destinationPort +
+        "\nSequence Number = " + this.sequence +
+        "\nAck Number = " + this.ackNumber +
+        "\nOffset = " + this.offset +
+        "\nTCP Flags = " +
+        "\n\tURG = " + this.flags.getUrg() +
+        "\n\tACK = " + this.flags.getAck() +
+        "\n\tPSH = " + this.flags.getPsh() +
+        "\n\tRST = " + this.flags.getRst() +
+        "\n\tSYN = " + this.flags.getSyn() +
+        "\n\tFIN = " + this.flags.getFin() +
+        "\nWindow = " + this.window +
+        "\nChecksum = " + this.checksum +
+        "\nPointer = " + this.pointer;
+    }
+
     public static Integer getSIZE() {
         return SIZE;
     }
