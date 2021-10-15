@@ -10,10 +10,15 @@ import core.headers.pcap.PcapPacketHeader;
 import protocols.PcapPacketData;
 import protocols.arp.ARP;
 import protocols.dns.DNS;
+import protocols.dns.answer.DNSAnswer;
+import protocols.dns.query.DNSQuery;
 import protocols.icmp.ICMP;
 import utils.bytes.Swapper;
+import utils.hex.Hexlifier;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Predicate;
 
 
@@ -205,8 +210,78 @@ public class Pcap {
                                         System.out.println("Authority RRs = " + dns.getNsCount());
                                         System.out.println("Additional RRs = " + dns.getArCount());
 
+                                        List<DNSQuery> queries = new LinkedList<>();
+
+                                        Integer offTracker = 0;
+                                        for (int i = 0; i < dns.getQdCount(); ++i) {
+                                            System.out.println("** Query N°" + i + " **");
+                                            StringBuilder name = new StringBuilder();
+                                            int nameLength;
+                                            while((nameLength = Integer.decode(read(offset, 1, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork()))) != 0) {
+                                                ++offTracker;
+                                                name.append(Hexlifier.unhexlify(read(offset, nameLength, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork()))).append(".");
+                                                offTracker += nameLength;
+                                            }
+                                            ++offTracker; // Null Byte
+                                            name.setLength(name.length() - 1);
+                                            Integer type = Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork()));
+                                            offTracker += 2;
+                                            Integer dnsClass = Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork()));
+                                            offTracker += 2;
+                                            DNSQuery query = new DNSQuery(name.toString(), type, dnsClass);
+                                            System.out.println("Name = " + query.getName());
+                                            if (query.getQueryType() != null)
+                                                System.out.println("Type = " + query.getQueryType() + " ("+ query.getQueryType().getEntry() + ")");
+                                            if (query.getQueryClass() != null)
+                                                System.out.println("Class = " + query.getQueryClass() + " ("+ query.getQueryClass().getEntry() + ")");
+                                            queries.add(query);
+                                        }
+                                        dns.setQueries(queries);
+
+                                        List<DNSAnswer> answers = new LinkedList<>();
+
+                                        for (int i = 0; i < dns.getAnCount(); ++i) {
+                                            System.out.println("** Answer N°" + i + " **");
+                                            String ignoredC00c = read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork());
+                                            offTracker += 2;
+                                            String name = queries.get(0).getName();
+                                            Integer type = Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork()));
+                                            offTracker += 2;
+                                            Integer dnsClass = Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork()));
+                                            offTracker += 2;
+                                            Integer ttl = Integer.decode(read(offset, 4, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork()));
+                                            offTracker += 4;
+                                            Integer dataLength = Integer.decode(read(offset, 2, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork()));
+                                            offTracker += 2;
+                                            String answerData = read(offset, dataLength, hexString,
+                                                    llh -> llh == LinkLayerHeader.ETHERNET,
+                                                    pcapGlobalHeader.getuNetwork());
+                                            offTracker += dataLength;
+                                            DNSAnswer answer = new DNSAnswer(name, type, dnsClass, ttl, dataLength, answerData);
+                                            
+                                        }
+
+                                        System.out.println("Offset Tracker = " + offTracker);
                                         offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() -
-                                                IPv4Header.getSIZE() - UDP.getSIZE() - 12);
+                                                IPv4Header.getSIZE() - UDP.getSIZE() - 12 - offTracker);
                                     }
                                     else
                                         offset += 2 * (pcapPacketHeader.getuInclLen() -

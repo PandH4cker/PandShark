@@ -6,10 +6,13 @@ public final class Hexlifier {
     public static String unhexlify(String hexString) {
         int l = hexString.length();
         byte[] data = new byte[l / 2];
-        for (int i = 0; i < l; i += 2) data[i / 2] =
-                (byte) ((Character.digit(hexString.charAt(i), 16) << 4) +
-                        Character.digit(hexString.charAt(i + 1), 16));
-        return new String(data).replaceAll("[\\p{C}]", "?");
+        for (int i = 0; i < l; i += 2) {
+            char c =  (char) ((Character.digit(hexString.charAt(i), 16) << 4) +
+                    Character.digit(hexString.charAt(i + 1), 16));
+            if (c > 0 && c < 255)
+                data[i / 2] = (byte) c;
+        }
+        return new String(data).replaceAll("[\\p{C}]", "");
     }
 
     public static String byteArraytoHexString(Byte[] bytes) {

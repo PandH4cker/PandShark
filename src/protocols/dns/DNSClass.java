@@ -1,8 +1,8 @@
-package protocols.dns.query;
+package protocols.dns;
 
 import protocols.dns.exceptions.UnknownQueryClass;
 
-public enum DNSQueryClass {
+public enum DNSClass {
     INTERNET("IN", 1, "Internet"),
     CSNET("CS", 2, "Class Csnet"),
     CHAOS("CH", 3, "Chaos"),
@@ -12,17 +12,17 @@ public enum DNSQueryClass {
     private Integer value;
     private String name;
 
-    DNSQueryClass(final String entry, final Integer value, final String name) {
+    DNSClass(final String entry, final Integer value, final String name) {
         this.entry = entry;
         this.value = value;
         this.name = name;
     }
 
-    public static DNSQueryClass fromEntryValue(final String entry, final Integer value) throws UnknownQueryClass {
-        for(DNSQueryClass qc : DNSQueryClass.values())
-            if (qc.entry.equals(entry) && qc.value.equals(value))
+    public static DNSClass fromValue(final Integer value) throws UnknownQueryClass {
+        for(DNSClass qc : DNSClass.values())
+            if (qc.value.equals(value))
                 return qc;
-        throw new UnknownQueryClass("UnknownQueryClass ("+entry+","+value+") unknown");
+        throw new UnknownQueryClass("UnknownQueryClass ("+value+") unknown");
     }
 
 

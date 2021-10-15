@@ -1,8 +1,8 @@
-package protocols.dns.query;
+package protocols.dns;
 
 import protocols.dns.exceptions.UnknownQueryType;
 
-public enum DNSQueryType {
+public enum DNSType {
     HOSTADDR("A", 1, "Host Address"),
     IPV6ADDR("AAAA", 28, "IPv6 Address"),
     NAMESERVER("NS", 2, "Name Server"),
@@ -25,17 +25,17 @@ public enum DNSQueryType {
     private Integer value;
     private String name;
 
-    DNSQueryType(final String entry, final Integer value, final String name) {
+    DNSType(final String entry, final Integer value, final String name) {
         this.entry = entry;
         this.value = value;
         this.name = name;
     }
 
-    public static DNSQueryType fromEntryValue(final String entry, final Integer value) throws UnknownQueryType {
-        for(DNSQueryType qt : DNSQueryType.values())
-            if (qt.entry.equals(entry) && qt.value.equals(value))
+    public static DNSType fromValue(final Integer value) throws UnknownQueryType {
+        for(DNSType qt : DNSType.values())
+            if (qt.value.equals(value))
                 return qt;
-        throw new UnknownQueryType("UnknownQueryType ("+entry+","+value+") unknown");
+        throw new UnknownQueryType("UnknownQueryType ("+value+") unknown");
     }
 
     @Override

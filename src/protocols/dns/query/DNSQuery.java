@@ -1,26 +1,50 @@
 package protocols.dns.query;
 
+import protocols.dns.DNSClass;
+import protocols.dns.DNSType;
 import protocols.dns.exceptions.UnknownQueryClass;
 import protocols.dns.exceptions.UnknownQueryType;
 
 public class DNSQuery {
     private String name;
-    private DNSQueryType queryType;
-    private DNSQueryClass queryClass;
+    private DNSType queryType;
+    private DNSClass queryClass;
 
     public DNSQuery(final String name,
-                    final String entryQueryType,
                     final Integer valueQueryType,
-                    final String entryQueryClass,
                     final Integer valueQueryClass) {
         this.name = name;
         try {
-            this.queryType = DNSQueryType.fromEntryValue(entryQueryType, valueQueryType);
-            this.queryClass = DNSQueryClass.fromEntryValue(entryQueryClass, valueQueryClass);
+            this.queryType = DNSType.fromValue(valueQueryType);
+            this.queryClass = DNSClass.fromValue(valueQueryClass);
         } catch (UnknownQueryType e) {
             this.queryType = null;
         } catch (UnknownQueryClass unknownQueryClass) {
             this.queryClass = null;
         }
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public DNSType getQueryType() {
+        return queryType;
+    }
+
+    public void setQueryType(DNSType queryType) {
+        this.queryType = queryType;
+    }
+
+    public DNSClass getQueryClass() {
+        return queryClass;
+    }
+
+    public void setQueryClass(DNSClass queryClass) {
+        this.queryClass = queryClass;
     }
 }
