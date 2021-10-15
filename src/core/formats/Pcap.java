@@ -9,6 +9,7 @@ import core.headers.pcap.PcapGlobalHeader;
 import core.headers.pcap.PcapPacketHeader;
 import protocols.PcapPacketData;
 import protocols.arp.ARP;
+import protocols.dns.DNS;
 import protocols.icmp.ICMP;
 import utils.bytes.Swapper;
 
@@ -165,10 +166,53 @@ public class Pcap {
                                             read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
                                                     pcapGlobalHeader.getuNetwork())
                                     );
-                                    offset += 2 * (pcapPacketHeader.getuInclLen() -
-                                            EthernetHeader.getSIZE() -
-                                            IPv4Header.getSIZE() -
-                                            UDP.getSIZE());
+                                    if (udp.getSourcePort() == 53 || udp.getDestinationPort() == 53) {
+                                        DNS dns = new DNS(
+                                                read(offset, 2, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork()),
+                                                read(offset, 2, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork()).substring(2),
+                                                Integer.decode(read(offset, 2, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork())),
+                                                Integer.decode(read(offset, 2, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork())),
+                                                Integer.decode(read(offset, 2, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork())),
+                                                Integer.decode(read(offset, 2, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork())),
+                                                iPv4Header.getIdentification(),
+                                                null,
+                                                ethernetHeader,
+                                                iPv4Header
+                                        );
+                                        System.out.println("** Packet DNS **");
+                                        System.out.println("Transaction ID = " + dns.getIdentifier());
+                                        System.out.println("Flags = ");
+                                        System.out.println("\tResponse = " + (dns.getDnsFlags().getQr() ? "Response" : "Query"));
+                                        System.out.println("\tOpcode = " + dns.getDnsFlags().getOpcode());
+                                        System.out.println("\tTruncated = " + dns.getDnsFlags().getTruncated());
+                                        System.out.println("\tRecursion Desired = " + dns.getDnsFlags().getRecursed());
+                                        System.out.println("\tZ = " + dns.getDnsFlags().getZ());
+                                        System.out.println("\tRcode = " + dns.getDnsFlags().getRcode());
+                                        System.out.println("Questions = " + dns.getQdCount());
+                                        System.out.println("Answer RRs = " + dns.getAnCount());
+                                        System.out.println("Authority RRs = " + dns.getNsCount());
+                                        System.out.println("Additional RRs = " + dns.getArCount());
+
+                                        offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() -
+                                                IPv4Header.getSIZE() - UDP.getSIZE() - 12);
+                                    }
+                                    else
+                                        offset += 2 * (pcapPacketHeader.getuInclLen() -
+                                                EthernetHeader.getSIZE() -
+                                                IPv4Header.getSIZE() -
+                                                UDP.getSIZE());
                                 }
                                 case TCP -> {
                                     TCP tcp = new TCP(

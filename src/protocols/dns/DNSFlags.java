@@ -10,7 +10,7 @@ public class DNSFlags {
     private Boolean truncated;
     private Boolean recursed;
     private Boolean authoritativeRecurse;
-    private Boolean z;
+    private Integer z;
     private Rcode rcode;
 
     public DNSFlags(final Boolean qr,
@@ -19,7 +19,7 @@ public class DNSFlags {
                     final Boolean truncated,
                     final Boolean recursed,
                     final Boolean authoritativeRecurse,
-                    final Boolean z,
+                    final Integer z,
                     final Integer rcode) {
         try {
             this.qr = qr;
@@ -35,5 +35,69 @@ public class DNSFlags {
         } catch (UnknownRcode ignored) {
             this.rcode = null;
         }
+    }
+
+    public Boolean getQr() {
+        return qr;
+    }
+
+    public void setQr(Boolean qr) {
+        this.qr = qr;
+    }
+
+    public DNSOpcode getOpcode() {
+        return opcode;
+    }
+
+    public void setOpcode(DNSOpcode opcode) {
+        this.opcode = opcode;
+    }
+
+    public Boolean getAuthoritativeAnswer() {
+        return authoritativeAnswer;
+    }
+
+    public void setAuthoritativeAnswer(Boolean authoritativeAnswer) {
+        this.authoritativeAnswer = authoritativeAnswer;
+    }
+
+    public Boolean getTruncated() {
+        return truncated;
+    }
+
+    public void setTruncated(Boolean truncated) {
+        this.truncated = truncated;
+    }
+
+    public Boolean getRecursed() {
+        return recursed;
+    }
+
+    public void setRecursed(Boolean recursed) {
+        this.recursed = recursed;
+    }
+
+    public Boolean getAuthoritativeRecurse() {
+        return authoritativeRecurse;
+    }
+
+    public void setAuthoritativeRecurse(Boolean authoritativeRecurse) {
+        this.authoritativeRecurse = authoritativeRecurse;
+    }
+
+    public Integer getZ() {
+        return z;
+    }
+
+    public void setZ(Integer z) {
+        this.z = z;
+    }
+
+    public Rcode getRcode() {
+        return rcode;
+    }
+
+    public void setRcode(Rcode rcode) {
+        this.rcode = rcode;
     }
 }

@@ -3,8 +3,6 @@ package core.headers.layer4.tcp;
 import core.headers.layer4.Layer4Protocol;
 import utils.bytes.Bytefier;
 
-import java.util.Arrays;
-
 public class TCP implements Layer4Protocol {
     private static final Integer SIZE = 20;
 
