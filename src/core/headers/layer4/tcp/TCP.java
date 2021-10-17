@@ -17,6 +17,9 @@ public class TCP implements Layer4Protocol {
     private String checksum;
     private Integer pointer;
 
+    //Optional
+    private String option;
+
     public TCP(final Integer sourcePort,
                final Integer destinationPort,
                final Long sequence,
@@ -45,6 +48,14 @@ public class TCP implements Layer4Protocol {
                 Bytefier.getBit(offResFlagsByteArray[1], 2) != 0,
                 Bytefier.getBit(offResFlagsByteArray[1], 1) != 0,
                 Bytefier.getBit(offResFlagsByteArray[1], 0) != 0);
+    }
+
+    public String getOption() {
+        return option;
+    }
+
+    public void setOption(String option) {
+        this.option = option;
     }
 
     @Override

@@ -13,6 +13,7 @@ import protocols.dns.DNS;
 import protocols.dns.DNSType;
 import protocols.dns.answer.DNSAnswer;
 import protocols.dns.query.DNSQuery;
+import protocols.ftp.FTP;
 import protocols.icmp.ICMP;
 import utils.bytes.Swapper;
 import utils.hex.Hexlifier;
@@ -150,7 +151,7 @@ public class Pcap {
                                             Integer.decode(read(offset, 2, hexString,
                                                     llh -> llh == LinkLayerHeader.ETHERNET,
                                                     pcapGlobalHeader.getuNetwork())),
-                                            Integer.decode(read(offset, 2, hexString,
+                                            Long.decode(read(offset, 2, hexString,
                                                     llh -> llh == LinkLayerHeader.ETHERNET,
                                                     pcapGlobalHeader.getuNetwork())),
                                             Integer.decode(read(offset, 8, hexString)),
@@ -368,10 +369,31 @@ public class Pcap {
                                                     llh -> llh == LinkLayerHeader.ETHERNET,
                                                     pcapGlobalHeader.getuNetwork()))
                                     );
-                                    offset += 2 * (pcapPacketHeader.getuInclLen() -
+                                    if (tcp.getOffset() > 5)
+                                        tcp.setOption(read(offset, 8,
+                                                hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                                                pcapGlobalHeader.getuNetwork()));
+
+                                    Integer size = pcapPacketHeader.getuInclLen() -
                                             EthernetHeader.getSIZE() -
                                             IPv4Header.getSIZE() -
-                                            TCP.getSIZE());
+                                            TCP.getSIZE() - (tcp.getOffset() > 5 ? 8 : 0);
+
+                                    if (size != 0 && (tcp.getSourcePort() == 21 || tcp.getDestinationPort() == 21)) {
+                                        FTP ftp = new FTP(iPv4Header.getIdentification(),
+                                                          tcp.getSequence(),
+                                                          ethernetHeader,
+                                                          iPv4Header,
+                                                          read(offset, size, hexString,
+                                                                  llh -> llh == LinkLayerHeader.ETHERNET,
+                                                                  pcapGlobalHeader.getuNetwork()));
+                                        data.put(pcapPacketHeader, ftp);
+                                    }
+                                    else
+                                        offset += 2 * (pcapPacketHeader.getuInclLen() -
+                                                EthernetHeader.getSIZE() -
+                                                IPv4Header.getSIZE() -
+                                                TCP.getSIZE() - (tcp.getOffset() > 5 ? 8 : 0));
                                 }
                                 default -> {
                                     System.err.println("Encapsulated protocol ("+iPv4Header.getProtocol()+") not implemented !");

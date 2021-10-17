@@ -11,7 +11,7 @@ public final class Hexlifier {
         for (int i = 0; i < hexString.length(); i += 2) {
             String str = hexString.substring(i, i + 2);
             char charToAppend = (char) Integer.parseInt(str, 16);
-            if (charToAppend > 32 && charToAppend < 126)
+            if (charToAppend >= 32 && charToAppend <= 126)
                 asciiStr.append((char) Integer.parseInt(str, 16));
         }
         return asciiStr.toString();

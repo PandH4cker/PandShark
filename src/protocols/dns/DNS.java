@@ -27,7 +27,7 @@ public class DNS extends PcapPacketData {
                   final Integer nsCount,
                   final Integer arCount,
                   final Integer id,
-                  final Integer sequenceNumber,
+                  final Long sequenceNumber,
                   final Layer2Protocol layer2Protocol,
                   final Layer3Protocol layer3Protocol) {
         super(id, sequenceNumber, layer2Protocol, layer3Protocol);

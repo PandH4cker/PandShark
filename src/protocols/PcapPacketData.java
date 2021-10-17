@@ -7,10 +7,10 @@ public abstract class PcapPacketData implements Comparable {
     private Layer2Protocol layer2Protocol;
     private Layer3Protocol layer3Protocol;
     private Integer id;
-    private Integer sequenceNumber;
+    private Long sequenceNumber;
 
     protected PcapPacketData(final Integer id,
-                             final Integer sequenceNumber,
+                             final Long sequenceNumber,
                              final Layer2Protocol layer2Protocol,
                              final Layer3Protocol layer3Protocol) {
         this.id = id;
@@ -41,11 +41,11 @@ public abstract class PcapPacketData implements Comparable {
         this.id = id;
     }
 
-    public Integer getSequenceNumber() {
+    public Long getSequenceNumber() {
         return sequenceNumber;
     }
 
-    public void setSequenceNumber(Integer sequenceNumber) {
+    public void setSequenceNumber(Long sequenceNumber) {
         this.sequenceNumber = sequenceNumber;
     }
 }

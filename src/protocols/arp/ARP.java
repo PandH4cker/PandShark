@@ -23,7 +23,7 @@ public class ARP extends PcapPacketData {
 
 
     public ARP(final Integer id,
-               final Integer sequenceNumber,
+               final Long sequenceNumber,
                final Layer2Protocol layer2Protocol,
                final Layer3Protocol layer3Protocol,
                final Integer hardwareType,

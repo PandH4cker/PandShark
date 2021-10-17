@@ -18,7 +18,7 @@ public class ICMP extends PcapPacketData {
                 final Integer code,
                 final String checksum,
                 final Integer id,
-                final Integer sequenceNumber,
+                final Long sequenceNumber,
                 final Integer dataTimestamp,
                 final String data,
                 final Layer2Protocol layer2Protocol,
