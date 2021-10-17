@@ -19,6 +19,7 @@ public enum DNSType {
     HINFO("HINFO", 13, "Host Information"),
     MINFO("MINFO", 14, "Mail List Information"),
     MAIL_EXCHANGE("MX", 15, "Mail Exchange"),
+    NAPTR("NAPTR", 35, "Name Authority Pointer"),
     TEXT("TXT", 16, "Text Strings");
 
     private String entry;

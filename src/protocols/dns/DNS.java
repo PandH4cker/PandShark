@@ -7,7 +7,6 @@ import protocols.dns.answer.DNSAnswer;
 import protocols.dns.query.DNSQuery;
 import utils.bytes.Bytefier;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -20,7 +19,6 @@ public class DNS extends PcapPacketData {
     private Integer arCount;
     private List<DNSQuery> queries;
     private List<DNSAnswer> answers;
-
 
     public DNS(final String identifier,
                   final String dnsFlags,
@@ -59,12 +57,31 @@ public class DNS extends PcapPacketData {
 
         this.queries = new LinkedList<>();
         this.answers = new LinkedList<>();
+    }
 
-        /*System.out.println("DNS Queries");
-        System.out.println(queries);
-
-        System.out.println("DNS Answers");
-        System.out.println(answers);*/
+    @Override
+    public String toString() {
+        String toString =  "Transaction ID = " + this.identifier +
+        "\nFlags = " +
+        "\n\tResponse = " + (this.dnsFlags.getQr() ? "Response" : "Query") +
+        "\n\tOpcode = " + this.dnsFlags.getOpcode() +
+        "\n\tTruncated = " + this.dnsFlags.getTruncated() +
+        "\n\tRecursion Desired = " + this.dnsFlags.getRecursed() +
+        "\n\tZ = " + this.dnsFlags.getZ() +
+        "\n\tRcode = " + this.dnsFlags.getRcode() +
+        "\nQuestions = " + this.qdCount +
+        "\nAnswer RRs = " + this.anCount +
+        "\nAuthority RRs = " + this.nsCount +
+        "\nAdditional RRs = " + this.getArCount();
+        for (int i = 0, queriesSize = queries.size(); i < queriesSize; ++i) {
+            DNSQuery query = queries.get(i);
+            toString += "\n** Query N°" + (i + 1) + " **\n" + query;
+        }
+        for (int i = 0, answersSize = answers.size(); i < answersSize; i++) {
+            DNSAnswer answer = answers.get(i);
+            toString += "\n** Answer N°" + (i + 1) + " **\n" + answer;
+        }
+        return toString;
     }
 
     public String getIdentifier() {

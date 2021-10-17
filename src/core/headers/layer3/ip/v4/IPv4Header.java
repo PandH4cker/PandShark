@@ -59,8 +59,8 @@ public class IPv4Header implements Layer3Protocol {
             this.ttl = ttl;
             this.protocol = EncapsulatedProtocol.fromPort(port);
             this.checksum = checksum;
-            this.sourceIP = IP.fromHexString(sourceIP);
-            this.destinationIP = IP.fromHexString(destinationIP);
+            this.sourceIP = IP.v4FromHexString(sourceIP);
+            this.destinationIP = IP.v4FromHexString(destinationIP);
         } catch (UnknownVersion e) {
             this.version = null;
         } catch (UnknownPort e) {

@@ -48,9 +48,9 @@ public class ARP extends PcapPacketData {
             e.printStackTrace();
         }
         this.senderHardwareAddress = MAC.fromHexString(senderHardwareAddress);
-        this.senderInternetAddress = IP.fromHexString(senderInternetAddress);
+        this.senderInternetAddress = IP.v4FromHexString(senderInternetAddress);
         this.targetHardwareAddress = MAC.fromHexString(targetHardwareAddress);
-        this.targetInternetAddress = IP.fromHexString(targetInternetAddress);
+        this.targetInternetAddress = IP.v4FromHexString(targetInternetAddress);
         this.trailer = trailer;
     }
 

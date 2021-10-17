@@ -24,6 +24,13 @@ public class DNSQuery {
         }
     }
 
+    @Override
+    public String toString() {
+        return "Name = " + this.name +
+            "\nType = " + this.queryType + " ("+ (this.queryType.getEntry() != null ? this.queryType.getEntry() : null) + ")" +
+            "\nClass = " + this.queryClass + " ("+ (this.queryClass.getEntry() != null ? this.queryClass.getEntry() : null) + ")";
+    }
+
     public String getName() {
         return name;
     }

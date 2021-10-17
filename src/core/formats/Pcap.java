@@ -10,16 +10,20 @@ import core.headers.pcap.PcapPacketHeader;
 import protocols.PcapPacketData;
 import protocols.arp.ARP;
 import protocols.dns.DNS;
+import protocols.dns.DNSType;
 import protocols.dns.answer.DNSAnswer;
 import protocols.dns.query.DNSQuery;
 import protocols.icmp.ICMP;
 import utils.bytes.Swapper;
 import utils.hex.Hexlifier;
+import utils.net.IP;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
+
+import static protocols.dns.DNSType.*;
 
 
 public class Pcap {
@@ -63,7 +67,7 @@ public class Pcap {
 
     public static Pcap fromHexString(String hexString) {
         LinkedHashMap<PcapPacketHeader, PcapPacketData> data = new LinkedHashMap<>();
-
+        int indexOfPacket = 1;
         //Global Header
         magicNumber = read(offset, 4, hexString);
         PcapGlobalHeader pcapGlobalHeader = new PcapGlobalHeader(
@@ -76,6 +80,7 @@ public class Pcap {
         );
         while (offset < hexString.length()) {
             //Packet Header
+            ++indexOfPacket;
             PcapPacketHeader pcapPacketHeader = new PcapPacketHeader(
                     Integer.decode(read(offset, 4, hexString)),
                     Integer.decode(read(offset, 4, hexString)),
@@ -196,25 +201,10 @@ public class Pcap {
                                                 ethernetHeader,
                                                 iPv4Header
                                         );
-                                        System.out.println("** Packet DNS **");
-                                        System.out.println("Transaction ID = " + dns.getIdentifier());
-                                        System.out.println("Flags = ");
-                                        System.out.println("\tResponse = " + (dns.getDnsFlags().getQr() ? "Response" : "Query"));
-                                        System.out.println("\tOpcode = " + dns.getDnsFlags().getOpcode());
-                                        System.out.println("\tTruncated = " + dns.getDnsFlags().getTruncated());
-                                        System.out.println("\tRecursion Desired = " + dns.getDnsFlags().getRecursed());
-                                        System.out.println("\tZ = " + dns.getDnsFlags().getZ());
-                                        System.out.println("\tRcode = " + dns.getDnsFlags().getRcode());
-                                        System.out.println("Questions = " + dns.getQdCount());
-                                        System.out.println("Answer RRs = " + dns.getAnCount());
-                                        System.out.println("Authority RRs = " + dns.getNsCount());
-                                        System.out.println("Additional RRs = " + dns.getArCount());
-
                                         List<DNSQuery> queries = new LinkedList<>();
 
                                         Integer offTracker = 0;
                                         for (int i = 0; i < dns.getQdCount(); ++i) {
-                                            System.out.println("** Query N°" + i + " **");
                                             StringBuilder name = new StringBuilder();
                                             int nameLength;
                                             while((nameLength = Integer.decode(read(offset, 1, hexString,
@@ -236,50 +226,113 @@ public class Pcap {
                                                     llh -> llh == LinkLayerHeader.ETHERNET,
                                                     pcapGlobalHeader.getuNetwork()));
                                             offTracker += 2;
+
                                             DNSQuery query = new DNSQuery(name.toString(), type, dnsClass);
-                                            System.out.println("Name = " + query.getName());
-                                            if (query.getQueryType() != null)
-                                                System.out.println("Type = " + query.getQueryType() + " ("+ query.getQueryType().getEntry() + ")");
-                                            if (query.getQueryClass() != null)
-                                                System.out.println("Class = " + query.getQueryClass() + " ("+ query.getQueryClass().getEntry() + ")");
                                             queries.add(query);
                                         }
                                         dns.setQueries(queries);
 
                                         List<DNSAnswer> answers = new LinkedList<>();
 
-                                        for (int i = 0; i < dns.getAnCount(); ++i) {
-                                            System.out.println("** Answer N°" + i + " **");
-                                            String ignoredC00c = read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork());
-                                            offTracker += 2;
-                                            String name = queries.get(0).getName();
-                                            Integer type = Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork()));
-                                            offTracker += 2;
-                                            Integer dnsClass = Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork()));
-                                            offTracker += 2;
-                                            Integer ttl = Integer.decode(read(offset, 4, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork()));
-                                            offTracker += 4;
-                                            Integer dataLength = Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork()));
-                                            offTracker += 2;
-                                            String answerData = read(offset, dataLength, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork());
-                                            offTracker += dataLength;
-                                            DNSAnswer answer = new DNSAnswer(name, type, dnsClass, ttl, dataLength, answerData);
-                                            
-                                        }
+                                        if (!(queries.get(0).getQueryType() == DNSType.NAPTR || queries.get(0).getQueryType() == null))
+                                            for (int i = 0; i < dns.getAnCount(); ++i) {
+                                                String ignoredC00c = read(offset, 2, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork());
+                                                offTracker += 2;
+                                                String name = i == 0 ?
+                                                        queries.get(0).getName() :
+                                                        answers.get(i - 1).getType() == CNAME ?
+                                                                answers.get(i - 1)
+                                                                        .getData()
+                                                                        .replace("CNAME: ", "") :
+                                                                answers.get(i - 1).getName();
+                                                Integer type = Integer.decode(read(offset, 2, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork()));
+                                                offTracker += 2;
+                                                Integer dnsClass = Integer.decode(read(offset, 2, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork()));
+                                                offTracker += 2;
+                                                Integer ttl = Integer.decode(read(offset, 4, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork()));
+                                                offTracker += 4;
+                                                Integer dataLength = Integer.decode(read(offset, 2, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork()));
+                                                offTracker += 2;
+                                                String answerData = read(offset, dataLength, hexString,
+                                                        llh -> llh == LinkLayerHeader.ETHERNET,
+                                                        pcapGlobalHeader.getuNetwork());
+                                                offTracker += dataLength;
 
-                                        System.out.println("Offset Tracker = " + offTracker);
+                                                DNSAnswer answer = new DNSAnswer(name, type, dnsClass, ttl, dataLength, answerData);
+                                                answer.setData(answer.getType() != null ? switch (answer.getType()) {
+                                                    case HOSTADDR -> {
+                                                        String ipv4 = IP.v4FromHexString(answer.getData().substring(2));
+                                                        yield "Address: " + ipv4;
+                                                    }
+                                                    case IPV6ADDR -> {
+                                                        String ipv6 = IP.v6FromHexString(answer.getData().substring(2));
+                                                        yield "Address: " + ipv6;
+                                                    }
+                                                    case CNAME -> {
+                                                        String cname = Hexlifier.unhexlify(answer.getData().substring(2));
+                                                        yield "CNAME: " + answer.getName().replaceFirst("[^.]*", cname);
+                                                    }
+                                                    case NAMESERVER -> {
+                                                        String nameServerPayload = answer.getData().substring(2);
+                                                        int nameLength;
+                                                        StringBuilder nameServer = new StringBuilder();
+                                                        int index = 0;
+                                                        while((nameLength = Integer.decode("0x" + nameServerPayload.substring(0, 2))) != 0) {
+                                                            nameServerPayload = nameServerPayload.substring(2);
+                                                            if (nameLength == Integer.decode("0xc0"))
+                                                                yield "Name Server: " + answers.get(i - 1)
+                                                                        .getData()
+                                                                        .replace("Name Server: ", "")
+                                                                        .replaceFirst("(([^.]+)\\.){1,"+index+"}", nameServer.toString());
+                                                            nameServer.append(Hexlifier.unhexlify(nameServerPayload.substring(0, nameLength * 2)))
+                                                                    .append(".");
+                                                            ++index;
+                                                            nameServerPayload = nameServerPayload.substring(nameLength * 2);
+                                                        }
+                                                        nameServer.setLength(nameServer.length() - 1);
+                                                        yield "Name Server: " + nameServer;
+                                                    }
+                                                    case MAIL_EXCHANGE -> {
+                                                        String mailExchangePayload = answer.getData().substring(2);
+
+                                                        StringBuilder mailExchange = new StringBuilder();
+                                                        Integer preference = Integer.decode("0x" + mailExchangePayload.substring(0, 4));
+                                                        mailExchangePayload = mailExchangePayload.substring(4);
+
+                                                        int nameLength;
+                                                        while((nameLength = Integer.decode("0x" + mailExchangePayload.substring(0, 2))) != 0) {
+                                                            mailExchangePayload = mailExchangePayload.substring(2);
+                                                            if (nameLength == Integer.decode("0xc0"))
+                                                                yield "Preference: " + preference +
+                                                                      "\nMail Exchange: " + mailExchange + queries.get(0).getName();
+
+                                                            mailExchange.append(Hexlifier.unhexlify(mailExchangePayload.substring(0, nameLength * 2)))
+                                                                    .append(".");
+                                                            mailExchangePayload = mailExchangePayload.substring(nameLength * 2);
+                                                        }
+                                                        mailExchange.setLength(mailExchange.length() - 1);
+                                                        yield "Preference: " + preference +
+                                                              "\nMail Exchange: " + mailExchange;
+                                                    }
+                                                    default -> answer.getData();
+                                                } : answer.getData());
+
+                                                answers.add(answer);
+                                            }
+                                        dns.setAnswers(answers);
+
+                                        data.put(pcapPacketHeader, dns);
+                                        System.out.println(dns);
                                         offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() -
                                                 IPv4Header.getSIZE() - UDP.getSIZE() - 12 - offTracker);
                                     }
