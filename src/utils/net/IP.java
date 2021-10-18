@@ -18,7 +18,7 @@ public final class IP {
                 .split("(?<=\\G.{4})"))
                 .map(val -> val.replaceAll("^0+", ""))
                 .collect(Collectors.joining(":"))
-                .replace("0000:", ":")
-                .replace(":{2,}", "::");
+                .replaceAll("0000:", ":")
+                .replaceAll(":{2,}", "::");
     }
 }

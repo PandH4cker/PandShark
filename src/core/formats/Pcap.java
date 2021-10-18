@@ -71,137 +71,26 @@ public class Pcap {
         int indexOfPacket = 1;
         //Global Header
         magicNumber = read(offset, 4, hexString);
-        PcapGlobalHeader pcapGlobalHeader = new PcapGlobalHeader(
-                magicNumber, Integer.decode(read(offset, 2, hexString)),
-                Integer.decode(read(offset, 2, hexString)),
-                Integer.decode(read(offset, 4, hexString)),
-                Integer.decode(read(offset, 4, hexString)),
-                Integer.decode(read(offset, 4, hexString)),
-                Integer.decode(read(offset, 4, hexString))
-        );
+        PcapGlobalHeader pcapGlobalHeader = getPcapGlobalHeader(hexString);
         while (offset < hexString.length()) {
             //Packet Header
             ++indexOfPacket;
-            PcapPacketHeader pcapPacketHeader = new PcapPacketHeader(
-                    Integer.decode(read(offset, 4, hexString)),
-                    Integer.decode(read(offset, 4, hexString)),
-                    Integer.decode(read(offset, 4, hexString)),
-                    Integer.decode(read(offset, 4, hexString))
-            );
+            PcapPacketHeader pcapPacketHeader = getPcapPacketHeader(hexString);
             switch (pcapGlobalHeader.getuNetwork()) {
                 case ETHERNET -> {
-                    EthernetHeader ethernetHeader = new EthernetHeader(
-                            read(offset, 6, hexString,
-                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                    pcapGlobalHeader.getuNetwork()).substring(2),
-                            read(offset, 6, hexString,
-                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                    pcapGlobalHeader.getuNetwork()).substring(2),
-                            read(offset, 2, hexString,
-                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                    pcapGlobalHeader.getuNetwork())
-                    );
-
+                    EthernetHeader ethernetHeader = getEthernetHeader(hexString, pcapGlobalHeader);
                     switch (ethernetHeader.getEtherType()) {
                         case IPV4 -> {
-                            IPv4Header iPv4Header = new IPv4Header(
-                                    read(offset, 1, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork()).substring(2),
-                                    read(offset, 1, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork()),
-                                    Integer.decode(read(offset, 2, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork())),
-                                    Integer.decode(read(offset, 2, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork())),
-                                    read(offset, 2, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork()).substring(2),
-                                    Integer.decode(read(offset, 1, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork())),
-                                    Integer.decode(read(offset, 1, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork())),
-                                    read(offset, 2, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork()),
-                                    read(offset, 4, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork()).substring(2),
-                                    read(offset, 4, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork()).substring(2)
-                            );
+                            IPv4Header iPv4Header = getiPv4Header(hexString, pcapGlobalHeader);
                             switch (iPv4Header.getProtocol()) {
                                 case ICMP -> {
-                                    ICMP icmp = new ICMP(
-                                            Integer.decode(read(offset, 1, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            Integer.decode(read(offset, 1, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork()),
-                                            Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            Long.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            Integer.decode(read(offset, 8, hexString)),
-                                            read(offset, 48, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork()),
-                                            ethernetHeader,
-                                            iPv4Header
-                                    );
+                                    ICMP icmp = getIcmp(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header);
                                     data.put(pcapPacketHeader, icmp);
                                 }
                                 case UDP -> {
-                                    UDP udp = new UDP(
-                                            Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())
-                                    );
+                                    UDP udp = getUdp(hexString, pcapGlobalHeader);
                                     if (udp.getSourcePort() == 53 || udp.getDestinationPort() == 53) {
-                                        DNS dns = new DNS(
-                                                read(offset, 2, hexString,
-                                                        llh -> llh == LinkLayerHeader.ETHERNET,
-                                                        pcapGlobalHeader.getuNetwork()),
-                                                read(offset, 2, hexString,
-                                                        llh -> llh == LinkLayerHeader.ETHERNET,
-                                                        pcapGlobalHeader.getuNetwork()).substring(2),
-                                                Integer.decode(read(offset, 2, hexString,
-                                                        llh -> llh == LinkLayerHeader.ETHERNET,
-                                                        pcapGlobalHeader.getuNetwork())),
-                                                Integer.decode(read(offset, 2, hexString,
-                                                        llh -> llh == LinkLayerHeader.ETHERNET,
-                                                        pcapGlobalHeader.getuNetwork())),
-                                                Integer.decode(read(offset, 2, hexString,
-                                                        llh -> llh == LinkLayerHeader.ETHERNET,
-                                                        pcapGlobalHeader.getuNetwork())),
-                                                Integer.decode(read(offset, 2, hexString,
-                                                        llh -> llh == LinkLayerHeader.ETHERNET,
-                                                        pcapGlobalHeader.getuNetwork())),
-                                                iPv4Header.getIdentification(),
-                                                null,
-                                                ethernetHeader,
-                                                iPv4Header
-                                        );
+                                        DNS dns = getDns(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header);
                                         List<DNSQuery> queries = new LinkedList<>();
 
                                         Integer offTracker = 0;
@@ -235,7 +124,7 @@ public class Pcap {
 
                                         List<DNSAnswer> answers = new LinkedList<>();
 
-                                        
+
                                         if (!(queries.get(0).getQueryType() == DNSType.NAPTR || queries.get(0).getQueryType() == null))
                                             for (int i = 0; i < dns.getAnCount(); ++i) {
                                                 String ignoredC00c = read(offset, 2, hexString,
@@ -337,6 +226,8 @@ public class Pcap {
                                         System.out.println(dns);
                                         offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() -
                                                 IPv4Header.getSIZE() - UDP.getSIZE() - 12 - offTracker);
+                                    } else if (udp.getSourcePort() == 68 || udp.getDestinationPort() == 68) {
+
                                     }
                                     else
                                         offset += 2 * (pcapPacketHeader.getuInclLen() -
@@ -345,49 +236,19 @@ public class Pcap {
                                                 UDP.getSIZE());
                                 }
                                 case TCP -> {
-                                    TCP tcp = new TCP(
-                                            Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            Long.decode(read(offset, 4, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            Long.decode(read(offset, 4, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork()).substring(2),
-                                            Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork())),
-                                            read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork()),
-                                            Integer.decode(read(offset, 2, hexString,
-                                                    llh -> llh == LinkLayerHeader.ETHERNET,
-                                                    pcapGlobalHeader.getuNetwork()))
-                                    );
+                                    TCP tcp = getTcp(hexString, pcapGlobalHeader);
                                     if (tcp.getOffset() > 5)
                                         tcp.setOption(read(offset, 8,
                                                 hexString, llh -> llh == LinkLayerHeader.ETHERNET,
                                                 pcapGlobalHeader.getuNetwork()));
 
-                                    Integer size = pcapPacketHeader.getuInclLen() -
+                                    int size = pcapPacketHeader.getuInclLen() -
                                             EthernetHeader.getSIZE() -
                                             IPv4Header.getSIZE() -
                                             TCP.getSIZE() - (tcp.getOffset() > 5 ? 8 : 0);
 
                                     if (size != 0 && (tcp.getSourcePort() == 21 || tcp.getDestinationPort() == 21)) {
-                                        FTP ftp = new FTP(iPv4Header.getIdentification(),
-                                                          tcp.getSequence(),
-                                                          ethernetHeader,
-                                                          iPv4Header,
-                                                          read(offset, size, hexString,
-                                                                  llh -> llh == LinkLayerHeader.ETHERNET,
-                                                                  pcapGlobalHeader.getuNetwork()));
+                                        FTP ftp = getFtp(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header, tcp, size);
                                         data.put(pcapPacketHeader, ftp);
                                     }
                                     else
@@ -404,29 +265,7 @@ public class Pcap {
                             }
                         }
                         case ARP -> {
-                            ARP arp = new ARP(null,
-                                    null,
-                                    ethernetHeader,
-                                    null,
-                                    Integer.decode(read(offset, 2, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
-                                    read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork()),
-                                    Integer.decode(read(offset, 1, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
-                                    Integer.decode(read(offset, 1, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
-                                    Integer.decode(read(offset, 2, hexString,llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
-                                    read(offset, 6, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
-                                    read(offset, 4, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
-                                            pcapGlobalHeader.getuNetwork()).substring(2),
-                                    read(offset, 6, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
-                                    read(offset, 4, hexString,
-                                            llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
-                                    pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() - ARP.getSIZE() > 0 ?
-                                            read(offset, 18, hexString, llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()) : "" );
+                            ARP arp = getArp(hexString, pcapGlobalHeader, pcapPacketHeader, ethernetHeader);
                             data.put(pcapPacketHeader, arp);
                         }
                         default -> {
@@ -445,5 +284,207 @@ public class Pcap {
         }
 
         return new Pcap(pcapGlobalHeader, data);
+    }
+
+    private static FTP getFtp(String hexString, PcapGlobalHeader pcapGlobalHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header, TCP tcp, Integer size) {
+        return new FTP(iPv4Header.getIdentification(),
+                          tcp.getSequence(),
+                ethernetHeader,
+                iPv4Header,
+                          read(offset, size, hexString,
+                                  llh -> llh == LinkLayerHeader.ETHERNET,
+                                  pcapGlobalHeader.getuNetwork()));
+    }
+
+    private static DNS getDns(String hexString, PcapGlobalHeader pcapGlobalHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
+        return new DNS(
+                read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                iPv4Header.getIdentification(),
+                null,
+                ethernetHeader,
+                iPv4Header
+        );
+    }
+
+    private static ARP getArp(String hexString, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader) {
+        return new ARP(null,
+                null,
+                ethernetHeader,
+                null,
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                Integer.decode(read(offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                read(offset, 6, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
+                read(offset, 4, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                read(offset, 6, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
+                read(offset, 4, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
+                pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() - ARP.getSIZE() > 0 ?
+                        read(offset, 18, hexString, llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()) : "" );
+    }
+
+    private static TCP getTcp(String hexString, PcapGlobalHeader pcapGlobalHeader) {
+        return new TCP(
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Long.decode(read(offset, 4, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Long.decode(read(offset, 4, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()))
+        );
+    }
+
+    private static UDP getUdp(String hexString, PcapGlobalHeader pcapGlobalHeader) {
+        return new UDP(
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                read(offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())
+        );
+    }
+
+    private static PcapGlobalHeader getPcapGlobalHeader(String hexString) {
+        return new PcapGlobalHeader(
+                magicNumber, Integer.decode(read(offset, 2, hexString)),
+                Integer.decode(read(offset, 2, hexString)),
+                Integer.decode(read(offset, 4, hexString)),
+                Integer.decode(read(offset, 4, hexString)),
+                Integer.decode(read(offset, 4, hexString)),
+                Integer.decode(read(offset, 4, hexString))
+        );
+    }
+
+    private static PcapPacketHeader getPcapPacketHeader(String hexString) {
+        return new PcapPacketHeader(
+                Integer.decode(read(offset, 4, hexString)),
+                Integer.decode(read(offset, 4, hexString)),
+                Integer.decode(read(offset, 4, hexString)),
+                Integer.decode(read(offset, 4, hexString))
+        );
+    }
+
+    private static ICMP getIcmp(String hexString, PcapGlobalHeader pcapGlobalHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
+        return new ICMP(
+                Integer.decode(read(offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Long.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 8, hexString)),
+                read(offset, 48, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                ethernetHeader,
+                iPv4Header
+        );
+    }
+
+    private static IPv4Header getiPv4Header(String hexString, PcapGlobalHeader pcapGlobalHeader) {
+        return new IPv4Header(
+                read(offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                read(offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                Integer.decode(read(offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(read(offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                read(offset, 4, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                read(offset, 4, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2)
+        );
+    }
+
+    private static EthernetHeader getEthernetHeader(String hexString, PcapGlobalHeader pcapGlobalHeader) {
+        return new EthernetHeader(
+                read(offset, 6, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                read(offset, 6, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                read(offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())
+        );
     }
 }
