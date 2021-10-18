@@ -235,6 +235,7 @@ public class Pcap {
 
                                         List<DNSAnswer> answers = new LinkedList<>();
 
+                                        
                                         if (!(queries.get(0).getQueryType() == DNSType.NAPTR || queries.get(0).getQueryType() == null))
                                             for (int i = 0; i < dns.getAnCount(); ++i) {
                                                 String ignoredC00c = read(offset, 2, hexString,
