@@ -1,6 +1,9 @@
 package core.headers.layer4.tcp;
 
+import core.formats.Pcap;
 import core.headers.layer4.Layer4Protocol;
+import core.headers.pcap.LinkLayerHeader;
+import core.headers.pcap.PcapGlobalHeader;
 import utils.bytes.Bytefier;
 
 public class TCP implements Layer4Protocol {
@@ -48,6 +51,34 @@ public class TCP implements Layer4Protocol {
                 Bytefier.getBit(offResFlagsByteArray[1], 2) != 0,
                 Bytefier.getBit(offResFlagsByteArray[1], 1) != 0,
                 Bytefier.getBit(offResFlagsByteArray[1], 0) != 0);
+    }
+
+    public static TCP readTcp(String hexString, PcapGlobalHeader pcapGlobalHeader) {
+        return new TCP(
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Long.decode(Pcap.read(Pcap.offset, 4, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Long.decode(Pcap.read(Pcap.offset, 4, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Pcap.read(Pcap.offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()))
+        );
     }
 
     public String getOption() {

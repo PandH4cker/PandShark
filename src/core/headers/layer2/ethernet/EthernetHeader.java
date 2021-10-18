@@ -1,7 +1,10 @@
 package core.headers.layer2.ethernet;
 
+import core.formats.Pcap;
 import core.headers.layer2.Layer2Protocol;
 import core.headers.layer2.ethernet.exceptions.UnknownEtherType;
+import core.headers.pcap.LinkLayerHeader;
+import core.headers.pcap.PcapGlobalHeader;
 import utils.net.MAC;
 
 import java.util.Arrays;
@@ -51,6 +54,20 @@ public class EthernetHeader implements Layer2Protocol {
 
     public static Integer getSIZE() {
         return SIZE;
+    }
+
+    public static EthernetHeader readEthernetHeader(String hexString, PcapGlobalHeader pcapGlobalHeader) {
+        return new EthernetHeader(
+                Pcap.read(Pcap.offset, 6, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                Pcap.read(Pcap.offset, 6, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())
+        );
     }
 
     @Override

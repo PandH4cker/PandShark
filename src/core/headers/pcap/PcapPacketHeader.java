@@ -1,5 +1,7 @@
 package core.headers.pcap;
 
+import core.formats.Pcap;
+
 import java.util.Date;
 
 public class PcapPacketHeader {
@@ -16,6 +18,15 @@ public class PcapPacketHeader {
         this.uTsUsec = uTsUsec;
         this.uInclLen = uInclLen;
         this.uOrigLen = uOrigLen;
+    }
+
+    public static PcapPacketHeader readPcapPacketHeader(String hexString) {
+        return new PcapPacketHeader(
+                Integer.decode(Pcap.read(Pcap.offset, 4, hexString)),
+                Integer.decode(Pcap.read(Pcap.offset, 4, hexString)),
+                Integer.decode(Pcap.read(Pcap.offset, 4, hexString)),
+                Integer.decode(Pcap.read(Pcap.offset, 4, hexString))
+        );
     }
 
     @Override

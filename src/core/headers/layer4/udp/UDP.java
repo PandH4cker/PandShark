@@ -1,6 +1,9 @@
 package core.headers.layer4.udp;
 
+import core.formats.Pcap;
 import core.headers.layer4.Layer4Protocol;
+import core.headers.pcap.LinkLayerHeader;
+import core.headers.pcap.PcapGlobalHeader;
 
 public class UDP implements Layer4Protocol {
     private static final Integer SIZE = 8;
@@ -18,6 +21,22 @@ public class UDP implements Layer4Protocol {
         this.destinationPort = destinationPort;
         this.length = length;
         this.checksum = checksum;
+    }
+
+    public static UDP readUdp(String hexString, PcapGlobalHeader pcapGlobalHeader) {
+        return new UDP(
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Pcap.read(Pcap.offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())
+        );
     }
 
     @Override

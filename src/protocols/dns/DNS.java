@@ -1,7 +1,12 @@
 package protocols.dns;
 
+import core.formats.Pcap;
 import core.headers.layer2.Layer2Protocol;
+import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.Layer3Protocol;
+import core.headers.layer3.ip.v4.IPv4Header;
+import core.headers.pcap.LinkLayerHeader;
+import core.headers.pcap.PcapGlobalHeader;
 import protocols.PcapPacketData;
 import protocols.dns.answer.DNSAnswer;
 import protocols.dns.query.DNSQuery;
@@ -57,6 +62,33 @@ public class DNS extends PcapPacketData {
 
         this.queries = new LinkedList<>();
         this.answers = new LinkedList<>();
+    }
+
+    public static DNS readDns(String hexString, PcapGlobalHeader pcapGlobalHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
+        return new DNS(
+                Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                iPv4Header.getIdentification(),
+                null,
+                ethernetHeader,
+                iPv4Header
+        );
     }
 
     @Override

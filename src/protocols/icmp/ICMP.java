@@ -1,7 +1,12 @@
 package protocols.icmp;
 
+import core.formats.Pcap;
 import core.headers.layer2.Layer2Protocol;
+import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.Layer3Protocol;
+import core.headers.layer3.ip.v4.IPv4Header;
+import core.headers.pcap.LinkLayerHeader;
+import core.headers.pcap.PcapGlobalHeader;
 import protocols.PcapPacketData;
 import protocols.icmp.exceptions.UnknownTypeCodeCombination;
 import utils.hex.Hexlifier;
@@ -32,6 +37,32 @@ public class ICMP extends PcapPacketData {
         this.checksum = checksum;
         this.dataTimestamp = dataTimestamp;
         this.data = data;
+    }
+
+    public static ICMP readIcmp(String hexString, PcapGlobalHeader pcapGlobalHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
+        return new ICMP(
+                Integer.decode(Pcap.read(Pcap.offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(Pcap.read(Pcap.offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Long.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork())),
+                Integer.decode(Pcap.read(Pcap.offset, 8, hexString)),
+                Pcap.read(Pcap.offset, 48, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                ethernetHeader,
+                iPv4Header
+        );
     }
 
     @Override

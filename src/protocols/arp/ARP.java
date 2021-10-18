@@ -1,7 +1,12 @@
 package protocols.arp;
 
+import core.formats.Pcap;
 import core.headers.layer2.Layer2Protocol;
+import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.Layer3Protocol;
+import core.headers.pcap.LinkLayerHeader;
+import core.headers.pcap.PcapGlobalHeader;
+import core.headers.pcap.PcapPacketHeader;
 import protocols.PcapPacketData;
 import protocols.arp.exceptions.*;
 import utils.net.IP;
@@ -56,6 +61,32 @@ public class ARP extends PcapPacketData {
 
     public static Integer getSIZE() {
         return SIZE;
+    }
+
+    public static ARP readArp(String hexString, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader) {
+        return new ARP(null,
+                null,
+                ethernetHeader,
+                null,
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                Pcap.read(Pcap.offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()),
+                Integer.decode(Pcap.read(Pcap.offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                Integer.decode(Pcap.read(Pcap.offset, 1, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                Integer.decode(Pcap.read(Pcap.offset, 2, hexString, llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
+                Pcap.read(Pcap.offset, 6, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
+                Pcap.read(Pcap.offset, 4, hexString, llh -> llh == LinkLayerHeader.ETHERNET,
+                        pcapGlobalHeader.getuNetwork()).substring(2),
+                Pcap.read(Pcap.offset, 6, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
+                Pcap.read(Pcap.offset, 4, hexString,
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
+                pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() - getSIZE() > 0 ?
+                        Pcap.read(Pcap.offset, 18, hexString, llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()) : "" );
     }
 
     @Override
