@@ -5,22 +5,40 @@ import core.headers.layer2.Layer2Protocol;
 import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.Layer3Protocol;
 import core.headers.layer3.ip.v4.IPv4Header;
+import core.headers.layer4.udp.UDP;
 import core.headers.pcap.LinkLayerHeader;
 import core.headers.pcap.PcapGlobalHeader;
+import core.headers.pcap.PcapPacketHeader;
 import protocols.PcapPacketData;
 import protocols.arp.HardwareType;
 import protocols.arp.exceptions.UnknownHardwareType;
+import protocols.dhcp.exceptions.UnknownDHCPOption;
 import protocols.dhcp.exceptions.UnknownFlagCode;
 import protocols.dhcp.exceptions.UnknownMessageType;
 import protocols.dhcp.option.DHCPOption;
+import protocols.dhcp.option.DHCPOptionCode;
+import protocols.dhcp.option.codes.clientid.DHCPClientID;
+import protocols.dhcp.option.codes.end.End;
+import protocols.dhcp.option.codes.ipaddrleasetime.IPAddrLeaseTime;
+import protocols.dhcp.option.codes.messagetype.DHCPMessageType;
+import protocols.dhcp.option.codes.messagetype.MessageType;
+import protocols.dhcp.option.codes.paramrequestitem.ParamRequestList;
+import protocols.dhcp.option.codes.rebindingtimevalue.RebindingTimeValue;
+import protocols.dhcp.option.codes.renewtimevalue.RenewTimeValue;
+import protocols.dhcp.option.codes.requestedipaddress.RequestedIPAddr;
+import protocols.dhcp.option.codes.serverid.ServerID;
+import protocols.dhcp.option.codes.subnetmask.SubnetMask;
 import utils.hex.Hexlifier;
 import utils.net.IP;
 import utils.net.MAC;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class DHCP extends PcapPacketData {
-    private DHCPMessageType messageType;
+    private static final Integer SIZE = 240;
+
+    private BOOTPMessageType messageType;
     private HardwareType hardwareType;
     private Integer hardwareAddressLength;
     private Integer hops;
@@ -37,7 +55,7 @@ public class DHCP extends PcapPacketData {
     private String serverHostname;
     private String bootFilename;
     private String magicCookie;
-    private List<DHCPOption> option;
+    private List<DHCPOption> options;
     private String padding;
 
 
@@ -63,7 +81,7 @@ public class DHCP extends PcapPacketData {
                 final Layer3Protocol layer3Protocol) {
         super(id, sequenceNumber, layer2Protocol, layer3Protocol);
         try {
-            this.messageType = DHCPMessageType.fromOp(messageType);
+            this.messageType = BOOTPMessageType.fromOp(messageType);
         } catch (UnknownMessageType e) {
             this.messageType = null;
         }
@@ -93,7 +111,133 @@ public class DHCP extends PcapPacketData {
         this.magicCookie = Hexlifier.unhexlify(magicCookie);
     }
 
-    public static DHCP readDHCP(String hexString, PcapGlobalHeader pcapGlobalHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
+    public void readDHCPOptions(String hexString, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader packetHeader) {
+        int needToBeRead = packetHeader.getuInclLen() - EthernetHeader.getSIZE() - IPv4Header.getSIZE() -
+                               UDP.getSIZE() - DHCP.getSIZE();
+        String optionsAndPadding = Pcap.read(Pcap.offset, needToBeRead, hexString,
+                                                llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())
+                                   .substring(2);
+
+        int i = 0;
+        boolean endReached = false;
+        List<DHCPOption> dhcpOptions = new LinkedList<>();
+
+        while (!endReached) {
+            int code = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+            i += 2;
+            DHCPOptionCode optionCode = null;
+            try {
+                optionCode = DHCPOptionCode.fromCode(code);
+            } catch (UnknownDHCPOption ignored) {}
+
+            DHCPOption option = null;
+            switch (optionCode) {
+                case DHCP_MESSAGETYPE -> {
+                    int length = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+
+                    int value = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+                    try {
+                        MessageType messageType = MessageType.fromValue(value);
+                        dhcpOptions.add(new DHCPMessageType(messageType));
+                    } catch (UnknownMessageType ignored) {}
+                }
+                case SUBNET_MASK -> {
+                    int length = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+
+                    dhcpOptions.add(new SubnetMask(IP.v4FromHexString(optionsAndPadding.substring(i, i + 8))));
+                    i += 8;
+                }
+                case RENEW_TIMEVALUE -> {
+                    int length = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+
+                    dhcpOptions.add(new RenewTimeValue(Integer.parseInt(optionsAndPadding.substring(i, i + 8), 16)));
+                    i += 8;
+                }
+                case REBINDING_TIMEVALUE -> {
+                    int length = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+
+                    dhcpOptions.add(new RebindingTimeValue(Integer.parseInt(optionsAndPadding.substring(i, i + 8), 16)));
+                    i += 8;
+                }
+                case IPALT -> {
+                    int length = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+
+                    dhcpOptions.add(new IPAddrLeaseTime(Integer.parseInt(optionsAndPadding.substring(i, i + 8), 16)));
+                    i += 8;
+                }
+                case SERVERID -> {
+                    int length = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+
+                    dhcpOptions.add(new ServerID(IP.v4FromHexString(optionsAndPadding.substring(i, i + 8))));
+                    i += 8;
+                }
+                case CLIENTID -> {
+                    int length = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+
+                    int hardwareCode = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+
+                    HardwareType hardwareType = null;
+                    try {
+                        hardwareType = HardwareType.fromCode(hardwareCode);
+                    } catch (UnknownHardwareType e) {}
+
+                    String MACAddress = MAC.fromHexString(optionsAndPadding.substring(i, i + 12));
+                    i += 12;
+
+                    dhcpOptions.add(new DHCPClientID(hardwareType, MACAddress));
+                }
+                case RIPA -> {
+                    int length = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+
+                    dhcpOptions.add(new RequestedIPAddr(IP.v4FromHexString(optionsAndPadding.substring(i, i + 8))));
+                    i += 8;
+                }
+                case PARAM_REQUEST_LIST -> {
+                    int length = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+
+                    List<DHCPOptionCode> paramRequestItemList = new LinkedList<>();
+                    for (int item = 0; item < length; ++item) {
+                        int paramValue = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                        i += 2;
+                        try {
+                            DHCPOptionCode dhcpOptionCode = DHCPOptionCode.fromCode(paramValue);
+                            paramRequestItemList.add(dhcpOptionCode);
+                        } catch (UnknownDHCPOption ignored) {}
+                    }
+
+                    dhcpOptions.add(new ParamRequestList(paramRequestItemList));
+                }
+
+                case END -> {
+                    dhcpOptions.add(new End());
+                    endReached = true;
+                }
+                default -> {
+                    int length = Integer.parseInt(optionsAndPadding.substring(i, i + 2), 16);
+                    i += 2;
+                    i += length * 2;
+                }
+            }
+        }
+        this.options = dhcpOptions;
+        this.padding = optionsAndPadding.substring(i);
+    }
+
+    public static DHCP readDHCP(String hexString,
+                                PcapGlobalHeader pcapGlobalHeader,
+                                EthernetHeader ethernetHeader,
+                                IPv4Header iPv4Header) {
         return new DHCP(
                 Integer.decode(Pcap.read(Pcap.offset, 1, hexString,
                         llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
@@ -108,25 +252,25 @@ public class DHCP extends PcapPacketData {
                 Integer.decode(Pcap.read(Pcap.offset, 2, hexString,
                     llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
                 Pcap.read(Pcap.offset, 2, hexString,
-                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()),
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                 Pcap.read(Pcap.offset, 4, hexString,
-                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()),
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                 Pcap.read(Pcap.offset, 4, hexString,
-                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()),
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                 Pcap.read(Pcap.offset, 4, hexString,
-                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()),
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                 Pcap.read(Pcap.offset, 4, hexString,
-                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()),
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                 Pcap.read(Pcap.offset, 6, hexString,
-                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()),
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                 Pcap.read(Pcap.offset, 10, hexString,
-                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()),
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                 Pcap.read(Pcap.offset, 64, hexString,
-                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()),
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                 Pcap.read(Pcap.offset, 128, hexString,
-                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()),
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                 Pcap.read(Pcap.offset, 4, hexString,
-                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()),
+                        llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork()).substring(2),
                 iPv4Header.getIdentification(),
                 null,
                 ethernetHeader,
@@ -134,11 +278,15 @@ public class DHCP extends PcapPacketData {
         );
     }
 
-    public DHCPMessageType getMessageType() {
+    public static Integer getSIZE() {
+        return SIZE;
+    }
+
+    public BOOTPMessageType getMessageType() {
         return messageType;
     }
 
-    public void setMessageType(DHCPMessageType messageType) {
+    public void setMessageType(BOOTPMessageType messageType) {
         this.messageType = messageType;
     }
 
@@ -271,11 +419,11 @@ public class DHCP extends PcapPacketData {
     }
 
     public List<DHCPOption> getOption() {
-        return option;
+        return options;
     }
 
-    public void setOption(List<DHCPOption> option) {
-        this.option = option;
+    public void setOption(List<DHCPOption> options) {
+        this.options = options;
     }
 
     public String getPadding() {

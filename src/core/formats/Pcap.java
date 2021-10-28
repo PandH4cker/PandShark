@@ -9,6 +9,8 @@ import core.headers.pcap.PcapGlobalHeader;
 import core.headers.pcap.PcapPacketHeader;
 import protocols.PcapPacketData;
 import protocols.arp.ARP;
+import protocols.dhcp.DHCP;
+import protocols.dhcp.option.DHCPOption;
 import protocols.dns.DNS;
 import protocols.dns.DNSType;
 import protocols.dns.answer.DNSAnswer;
@@ -159,7 +161,27 @@ public class Pcap {
         if (udp.getSourcePort() == 53 || udp.getDestinationPort() == 53)
             handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header);
         else if (udp.getSourcePort() == 68 || udp.getDestinationPort() == 68) {
+            DHCP dhcp = DHCP.readDHCP(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header);
+            System.out.println("** DHCP Packet **");
+            System.out.println("Message Type = " + dhcp.getMessageType());
+            System.out.println("Hardware Type = " + dhcp.getHardwareType());
+            System.out.println("Hardware Address Length = " + dhcp.getHardwareAddressLength());
+            System.out.println("Hops = " + dhcp.getHops());
+            System.out.println("Transaction ID = " + dhcp.getTransactionID());
+            System.out.println("Second Elapsed = " + dhcp.getSecondsElapsed());
+            System.out.println("BOOTP Flag = " + dhcp.getFlag());
+            System.out.println("Client Address IP = " + dhcp.getClientIP());
+            System.out.println("Your (client) Address IP = " + dhcp.getClientIP());
+            System.out.println("Next server IP Address = " + dhcp.getNextServerIP());
+            System.out.println("Relay agent IP Address = " + dhcp.getRelayAgentIP());
+            System.out.println("Client MAC Address = " + dhcp.getClientMAC());
+            System.out.println("Client Hardware Address Padding = " + dhcp.getClientHardwareAddressPadding());
+            System.out.println("Server Host Name = " + dhcp.getServerHostname());
+            System.out.println("Boot File Name = " + dhcp.getBootFilename());
 
+            dhcp.readDHCPOptions(hexString, pcapGlobalHeader, pcapPacketHeader);
+            for (DHCPOption option : dhcp.getOption())
+                System.out.println(option);
         }
         else
             offset += 2 * (pcapPacketHeader.getuInclLen() -
