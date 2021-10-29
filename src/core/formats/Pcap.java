@@ -155,8 +155,7 @@ public class Pcap {
 
     private static void handleHTTP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header, TCP tcp, int size) {
         HTTP http = HTTP.readHTTP(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header, tcp, size);
-        System.out.println("** HTTP Packet **");
-        System.out.println(http.getHttpMessage());
+        data.put(pcapPacketHeader, http);
     }
 
     private static void handleFTP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header, TCP tcp, int size) {
@@ -170,16 +169,21 @@ public class Pcap {
         if (udp.getSourcePort() == 53 || udp.getDestinationPort() == 53)
             handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header);
         else if (udp.getSourcePort() == 68 || udp.getDestinationPort() == 68) {
-            DHCP dhcp = DHCP.readDHCP(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header);
-            dhcp.readDHCPOptions(hexString, pcapGlobalHeader, pcapPacketHeader);
-            for (DHCPOption option : dhcp.getOption())
-                System.out.println(option);
+            handleDHCP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header);
+            /*for (DHCPOption option : dhcp.getOption())
+                System.out.println(option);*/
         }
         else
             offset += 2 * (pcapPacketHeader.getuInclLen() -
                     EthernetHeader.getSIZE() -
                     IPv4Header.getSIZE() -
                     UDP.getSIZE());
+    }
+
+    private static void handleDHCP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
+        DHCP dhcp = DHCP.readDHCP(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header);
+        dhcp.readDHCPOptions(hexString, pcapGlobalHeader, pcapPacketHeader);
+        data.put(pcapPacketHeader, dhcp);
     }
 
     private static void handleDNS(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {

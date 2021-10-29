@@ -38,6 +38,10 @@ public class HTTP extends PcapPacketData {
                         iPv4Header);
     }
 
+    @Override
+    public String toString() {
+        return httpMessage;
+    }
 
     public String getHttpMessage() {
         return httpMessage;
