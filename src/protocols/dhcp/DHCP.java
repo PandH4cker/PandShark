@@ -111,6 +111,26 @@ public class DHCP extends PcapPacketData {
         this.magicCookie = Hexlifier.unhexlify(magicCookie);
     }
 
+    @Override
+    public String toString() {
+        return
+                "Message Type = "  + this.messageType  + "\n" +
+                "Hardware Type = " + this.hardwareType + "\n" +
+                "Hardware Address Length = " + this.hardwareAddressLength + "\n" +
+                "Hops = " + this.hops + "\n" +
+                "Transaction ID = " + this.transactionID + "\n" +
+                "Second Elapsed = " + this.secondsElapsed + "\n" +
+                "BOOTP Flag = " + this.flag + "\n" +
+                "Client Address IP = " + this.clientIP + "\n" +
+                "Your (client) Address IP = " + this.futureClientIP + "\n" +
+                "Next server IP Address = " + this.nextServerIP + "\n" +
+                "Relay agent IP Address = " + this.relayAgentIP + "\n" +
+                "Client MAC Address = " + this.clientMAC + "\n" +
+                "Client Hardware Address Padding = " + this.clientHardwareAddressPadding + "\n" +
+                "Server Host Name = " + this.serverHostname + "\n" +
+                "Boot File Name = " + this.bootFilename;
+    }
+
     public void readDHCPOptions(String hexString, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader packetHeader) {
         int needToBeRead = packetHeader.getuInclLen() - EthernetHeader.getSIZE() - IPv4Header.getSIZE() -
                                UDP.getSIZE() - DHCP.getSIZE();

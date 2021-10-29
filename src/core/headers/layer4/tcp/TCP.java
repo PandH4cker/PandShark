@@ -41,7 +41,7 @@ public class TCP implements Layer4Protocol {
 
         byte[] offResFlagsByteArray = Bytefier.hexStringToByteArray(offResFlags);
 
-        this.offset = (offResFlagsByteArray[0] & 0xFF) >> 4;
+        this.offset = ((offResFlagsByteArray[0] & 0xFF) >> 4) * 4;
         this.reserved = String.valueOf(Bytefier.getFourthLowest(offResFlagsByteArray[0])) +
                 Bytefier.getBit(offResFlagsByteArray[1], 7) +
                 Bytefier.getBit(offResFlagsByteArray[1], 6);

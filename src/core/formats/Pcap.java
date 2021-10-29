@@ -16,6 +16,7 @@ import protocols.dns.DNSType;
 import protocols.dns.answer.DNSAnswer;
 import protocols.dns.query.DNSQuery;
 import protocols.ftp.FTP;
+import protocols.http.HTTP;
 import protocols.icmp.ICMP;
 import utils.bytes.Swapper;
 import utils.hex.Hexlifier;
@@ -129,25 +130,33 @@ public class Pcap {
 
     private static void handleTCP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
         TCP tcp = TCP.readTcp(hexString, pcapGlobalHeader);
-        if (tcp.getOffset() > 5)
-            tcp.setOption(read(offset, 8,
+        if (tcp.getOffset() > TCP.getSIZE())
+            tcp.setOption(read(offset, tcp.getOffset() - TCP.getSIZE(),
                     hexString, llh -> llh == LinkLayerHeader.ETHERNET,
                     pcapGlobalHeader.getuNetwork()));
 
         int remainingSize = pcapPacketHeader.getuInclLen() -
                 EthernetHeader.getSIZE() -
                 IPv4Header.getSIZE() -
-                TCP.getSIZE() - (tcp.getOffset() > 5 ? 8 : 0);
+                TCP.getSIZE() - (tcp.getOffset() > TCP.getSIZE() ? tcp.getOffset() - TCP.getSIZE() : 0);
 
         //TODO Detect the protocol
 
         if (remainingSize != 0 && (tcp.getSourcePort() == 21 || tcp.getDestinationPort() == 21))
-            handleFTP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, tcp, remainingSize);
+                handleFTP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, tcp, remainingSize);
+        else if (remainingSize != 0 && (tcp.getSourcePort() == 80 || tcp.getDestinationPort() == 80))
+                handleHTTP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, tcp, remainingSize);
         else
             offset += 2 * (pcapPacketHeader.getuInclLen() -
                     EthernetHeader.getSIZE() -
                     IPv4Header.getSIZE() -
-                    TCP.getSIZE() - (tcp.getOffset() > 5 ? 8 : 0));
+                    TCP.getSIZE() - (tcp.getOffset() > TCP.getSIZE() ? tcp.getOffset() - TCP.getSIZE() : 0));
+    }
+
+    private static void handleHTTP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header, TCP tcp, int size) {
+        HTTP http = HTTP.readHTTP(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header, tcp, size);
+        System.out.println("** HTTP Packet **");
+        System.out.println(http.getHttpMessage());
     }
 
     private static void handleFTP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header, TCP tcp, int size) {
@@ -162,23 +171,6 @@ public class Pcap {
             handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header);
         else if (udp.getSourcePort() == 68 || udp.getDestinationPort() == 68) {
             DHCP dhcp = DHCP.readDHCP(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header);
-            System.out.println("** DHCP Packet **");
-            System.out.println("Message Type = " + dhcp.getMessageType());
-            System.out.println("Hardware Type = " + dhcp.getHardwareType());
-            System.out.println("Hardware Address Length = " + dhcp.getHardwareAddressLength());
-            System.out.println("Hops = " + dhcp.getHops());
-            System.out.println("Transaction ID = " + dhcp.getTransactionID());
-            System.out.println("Second Elapsed = " + dhcp.getSecondsElapsed());
-            System.out.println("BOOTP Flag = " + dhcp.getFlag());
-            System.out.println("Client Address IP = " + dhcp.getClientIP());
-            System.out.println("Your (client) Address IP = " + dhcp.getClientIP());
-            System.out.println("Next server IP Address = " + dhcp.getNextServerIP());
-            System.out.println("Relay agent IP Address = " + dhcp.getRelayAgentIP());
-            System.out.println("Client MAC Address = " + dhcp.getClientMAC());
-            System.out.println("Client Hardware Address Padding = " + dhcp.getClientHardwareAddressPadding());
-            System.out.println("Server Host Name = " + dhcp.getServerHostname());
-            System.out.println("Boot File Name = " + dhcp.getBootFilename());
-
             dhcp.readDHCPOptions(hexString, pcapGlobalHeader, pcapPacketHeader);
             for (DHCPOption option : dhcp.getOption())
                 System.out.println(option);
@@ -324,7 +316,6 @@ public class Pcap {
         dns.setAnswers(answers);
 
         data.put(pcapPacketHeader, dns);
-        System.out.println(dns);
         offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() -
                 IPv4Header.getSIZE() - UDP.getSIZE() - 12 - offTracker);
     }
