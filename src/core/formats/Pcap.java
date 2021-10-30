@@ -168,7 +168,6 @@ public class Pcap {
 
     private static void handleFTP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header, TCP tcp, int size) {
         FTP ftp = FTP.readFtp(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header, tcp, size);
-        System.out.println(ftp);
         data.put(pcapPacketHeader, ftp);
     }
 
