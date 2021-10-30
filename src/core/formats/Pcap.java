@@ -330,7 +330,6 @@ public class Pcap {
                 answers.add(answer);
             }
         dns.setAnswers(answers);
-        //System.out.println(dns);
 
         data.put(pcapPacketHeader, dns);
         offset += 2 * (remainingSize - DNS.getSIZE() - offTracker);
