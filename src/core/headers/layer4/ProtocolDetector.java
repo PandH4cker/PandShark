@@ -1,7 +1,5 @@
 package core.headers.layer4;
 
-import utils.hex.Hexlifier;
-
 import java.util.regex.Pattern;
 
 public final class ProtocolDetector {
