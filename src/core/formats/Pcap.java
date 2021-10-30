@@ -146,17 +146,17 @@ public class Pcap {
             case "FTP" -> handleFTP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, tcp, remainingSize);
             case "HTTP" -> handleHTTP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, tcp, remainingSize);
             default -> {
-                switch (ProtocolDetector.detectProtocol(hexString.substring(Pcap.offset, Pcap.offset + remainingSize * 2))) {
+                /*switch (ProtocolDetector.detectProtocol(hexString.substring(Pcap.offset, Pcap.offset + remainingSize * 2))) {
                     case "DNS" -> {
                         System.out.println("DNS over TCP");
                         Pcap.offset += 4;
                         handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, remainingSize, tcp);
-                    }
-                    default -> offset += 2 * (pcapPacketHeader.getuInclLen() -
+                    }*/
+                   /* default ->*/ offset += 2 * (pcapPacketHeader.getuInclLen() -
                             EthernetHeader.getSIZE() -
                             IPv4Header.getSIZE() -
                             TCP.getSIZE() - (tcp.getOffset() > TCP.getSIZE() ? tcp.getOffset() - TCP.getSIZE() : 0));
-                }
+               // }
             }
         }
     }
