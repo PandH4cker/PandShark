@@ -5,6 +5,7 @@ import core.headers.layer2.Layer2Protocol;
 import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.Layer3Protocol;
 import core.headers.layer3.ip.v4.IPv4Header;
+import core.headers.layer4.Layer4Protocol;
 import core.headers.pcap.LinkLayerHeader;
 import core.headers.pcap.PcapGlobalHeader;
 import protocols.PcapPacketData;
@@ -28,16 +29,17 @@ public class DNS extends PcapPacketData {
     private List<DNSAnswer> answers;
 
     public DNS(final String identifier,
-                  final String dnsFlags,
-                  final Integer qdCount,
-                  final Integer anCount,
-                  final Integer nsCount,
-                  final Integer arCount,
-                  final Integer id,
-                  final Long sequenceNumber,
-                  final Layer2Protocol layer2Protocol,
-                  final Layer3Protocol layer3Protocol) {
-        super(id, sequenceNumber, layer2Protocol, layer3Protocol);
+               final String dnsFlags,
+               final Integer qdCount,
+               final Integer anCount,
+               final Integer nsCount,
+               final Integer arCount,
+               final Integer id,
+               final Long sequenceNumber,
+               final Layer2Protocol layer2Protocol,
+               final Layer3Protocol layer3Protocol,
+               final Layer4Protocol layer4Protocol) {
+        super(id, sequenceNumber, layer2Protocol, layer3Protocol, layer4Protocol);
         this.identifier = identifier;
 
         byte[] dnsFlagsByteArray = Bytefier.hexStringToByteArray(dnsFlags);
@@ -70,7 +72,9 @@ public class DNS extends PcapPacketData {
         return SIZE;
     }
 
-    public static DNS readDns(String hexString, PcapGlobalHeader pcapGlobalHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
+    public static DNS readDns(String hexString, PcapGlobalHeader pcapGlobalHeader,
+                              EthernetHeader ethernetHeader, IPv4Header iPv4Header,
+                              Layer4Protocol layer4Protocol) {
         return new DNS(
                 Pcap.read(Pcap.offset, 2, hexString,
                         llh -> llh == LinkLayerHeader.ETHERNET,
@@ -93,31 +97,32 @@ public class DNS extends PcapPacketData {
                 iPv4Header.getIdentification(),
                 null,
                 ethernetHeader,
-                iPv4Header
+                iPv4Header,
+                layer4Protocol
         );
     }
 
     @Override
     public String toString() {
-        String toString =  "Transaction ID = " + this.identifier +
-        "\nFlags = " +
-        "\n\tResponse = " + (this.dnsFlags.getQr() ? "Response" : "Query") +
-        "\n\tOpcode = " + this.dnsFlags.getOpcode() +
-        "\n\tTruncated = " + this.dnsFlags.getTruncated() +
-        "\n\tRecursion Desired = " + this.dnsFlags.getRecursed() +
-        "\n\tZ = " + this.dnsFlags.getZ() +
-        "\n\tRcode = " + this.dnsFlags.getRcode() +
-        "\nQuestions = " + this.qdCount +
-        "\nAnswer RRs = " + this.anCount +
-        "\nAuthority RRs = " + this.nsCount +
-        "\nAdditional RRs = " + this.getArCount();
+        String toString =  "\tTransaction ID = " + this.identifier +
+        "\n\tFlags = " +
+        "\n\t\tResponse = " + (this.dnsFlags.getQr() ? "Response" : "Query") +
+        "\n\t\tOpcode = " + this.dnsFlags.getOpcode() +
+        "\n\t\tTruncated = " + this.dnsFlags.getTruncated() +
+        "\n\t\tRecursion Desired = " + this.dnsFlags.getRecursed() +
+        "\n\t\tZ = " + this.dnsFlags.getZ() +
+        "\n\t\tRcode = " + this.dnsFlags.getRcode() +
+        "\n\tQuestions = " + this.qdCount +
+        "\n\tAnswer RRs = " + this.anCount +
+        "\n\tAuthority RRs = " + this.nsCount +
+        "\n\tAdditional RRs = " + this.getArCount();
         for (int i = 0, queriesSize = queries.size(); i < queriesSize; ++i) {
             DNSQuery query = queries.get(i);
-            toString += "\n** Query N°" + (i + 1) + " **\n" + query;
+            toString += "\n\t** Query N°" + (i + 1) + " **\n\t\t" + query;
         }
         for (int i = 0, answersSize = answers.size(); i < answersSize; i++) {
             DNSAnswer answer = answers.get(i);
-            toString += "\n** Answer N°" + (i + 1) + " **\n" + answer;
+            toString += "\n\t** Answer N°" + (i + 1) + " **\n\t\t" + answer;
         }
         return toString;
     }

@@ -7,8 +7,6 @@ import core.headers.pcap.LinkLayerHeader;
 import core.headers.pcap.PcapGlobalHeader;
 import utils.net.MAC;
 
-import java.util.Arrays;
-
 public class EthernetHeader implements Layer2Protocol {
     private static final Integer SIZE = 14;
 
@@ -21,8 +19,8 @@ public class EthernetHeader implements Layer2Protocol {
     public EthernetHeader(final String destinationIP,
                           final String sourceIP,
                           final String etherType) {
-        this.destinationIP = destinationIP;
-        this.sourceIP = sourceIP;
+        this.destinationIP = MAC.fromHexString(destinationIP);
+        this.sourceIP = MAC.fromHexString(sourceIP);
         try {
             this.etherType = EtherType.fromCodeType(etherType);
         } catch (UnknownEtherType e) {
@@ -72,9 +70,9 @@ public class EthernetHeader implements Layer2Protocol {
 
     @Override
     public String toString() {
-            return "Destination IP = " + destinationIP +
-            "\nSource IP = " + sourceIP +
-            "\nEtherType = " + etherType.getCodeType() + " (" + etherType + ")";
+            return "\tDestination IP: " + destinationIP +
+            "\n\tSource IP: " + sourceIP +
+            "\n\tEtherType: " + etherType.getCodeType() + " (" + etherType + ")";
     }
 
     public String getDestinationIP() {

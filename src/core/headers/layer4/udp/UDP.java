@@ -41,10 +41,10 @@ public class UDP implements Layer4Protocol {
 
     @Override
     public String toString() {
-        return "Source Port = " + this.sourcePort +
-        "\nDestination Port = " + this.destinationPort +
-        "\nLength = " + this.length +
-        "\nChecksum = " + this.checksum;
+        return "\tSource Port: " + this.sourcePort +
+        "\n\tDestination Port: " + this.destinationPort +
+        "\n\tLength: " + this.length +
+        "\n\tChecksum: " + this.checksum;
     }
 
     public static Integer getSIZE() {

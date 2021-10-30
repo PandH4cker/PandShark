@@ -5,6 +5,7 @@ import core.headers.layer2.Layer2Protocol;
 import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.Layer3Protocol;
 import core.headers.layer3.ip.v4.IPv4Header;
+import core.headers.layer4.Layer4Protocol;
 import core.headers.layer4.udp.UDP;
 import core.headers.pcap.LinkLayerHeader;
 import core.headers.pcap.PcapGlobalHeader;
@@ -78,8 +79,9 @@ public class DHCP extends PcapPacketData {
                 final Integer id,
                 final Long sequenceNumber,
                 final Layer2Protocol layer2Protocol,
-                final Layer3Protocol layer3Protocol) {
-        super(id, sequenceNumber, layer2Protocol, layer3Protocol);
+                final Layer3Protocol layer3Protocol,
+                final Layer4Protocol layer4Protocol) {
+        super(id, sequenceNumber, layer2Protocol, layer3Protocol, layer4Protocol);
         try {
             this.messageType = BOOTPMessageType.fromOp(messageType);
         } catch (UnknownMessageType e) {
@@ -114,21 +116,21 @@ public class DHCP extends PcapPacketData {
     @Override
     public String toString() {
         return
-                "Message Type = "  + this.messageType  + "\n" +
-                "Hardware Type = " + this.hardwareType + "\n" +
-                "Hardware Address Length = " + this.hardwareAddressLength + "\n" +
-                "Hops = " + this.hops + "\n" +
-                "Transaction ID = " + this.transactionID + "\n" +
-                "Second Elapsed = " + this.secondsElapsed + "\n" +
-                "BOOTP Flag = " + this.flag + "\n" +
-                "Client Address IP = " + this.clientIP + "\n" +
-                "Your (client) Address IP = " + this.futureClientIP + "\n" +
-                "Next server IP Address = " + this.nextServerIP + "\n" +
-                "Relay agent IP Address = " + this.relayAgentIP + "\n" +
-                "Client MAC Address = " + this.clientMAC + "\n" +
-                "Client Hardware Address Padding = " + this.clientHardwareAddressPadding + "\n" +
-                "Server Host Name = " + this.serverHostname + "\n" +
-                "Boot File Name = " + this.bootFilename;
+                "\tMessage Type: "  + this.messageType  + "\n" +
+                "\tHardware Type: " + this.hardwareType + "\n" +
+                "\tHardware Address Length: " + this.hardwareAddressLength + "\n" +
+                "\tHops: " + this.hops + "\n" +
+                "\tTransaction ID: " + this.transactionID + "\n" +
+                "\tSecond Elapsed: " + this.secondsElapsed + "\n" +
+                "\tBOOTP Flag: " + this.flag + "\n" +
+                "\tClient Address IP: " + this.clientIP + "\n" +
+                "\tYour (client) Address IP: " + this.futureClientIP + "\n" +
+                "\tNext server IP Address: " + this.nextServerIP + "\n" +
+                "\tRelay agent IP Address: " + this.relayAgentIP + "\n" +
+                "\tClient MAC Address: " + this.clientMAC + "\n" +
+                "\tClient Hardware Address Padding: " + this.clientHardwareAddressPadding + "\n" +
+                "\tServer Host Name: " + this.serverHostname + "\n" +
+                "\tBoot File Name: " + this.bootFilename;
     }
 
     public void readDHCPOptions(String hexString, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader packetHeader) {
@@ -257,7 +259,8 @@ public class DHCP extends PcapPacketData {
     public static DHCP readDHCP(String hexString,
                                 PcapGlobalHeader pcapGlobalHeader,
                                 EthernetHeader ethernetHeader,
-                                IPv4Header iPv4Header) {
+                                IPv4Header iPv4Header,
+                                Layer4Protocol layer4Protocol) {
         return new DHCP(
                 Integer.decode(Pcap.read(Pcap.offset, 1, hexString,
                         llh -> llh == LinkLayerHeader.ETHERNET, pcapGlobalHeader.getuNetwork())),
@@ -294,7 +297,8 @@ public class DHCP extends PcapPacketData {
                 iPv4Header.getIdentification(),
                 null,
                 ethernetHeader,
-                iPv4Header
+                iPv4Header,
+                layer4Protocol
         );
     }
 

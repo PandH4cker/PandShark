@@ -112,20 +112,20 @@ public class IPv4Header implements Layer3Protocol {
 
     @Override
     public String toString() {
-        return "IP version = " + this.version +
-        "\nIHL = " + this.internetHeaderLength * 32 / 8 + " bytes" +
-        "\nService = " + this.service +
-        "\nTotal Length = " + this.totalLength + " bytes" +
-        "\nIdentification = " + this.identification +
-        "\nFlags =" +
-        "\n\tDon't Fragment = " + this.flags.getDontFragment() +
-        "\n\tMore Fragment = " + this.flags.getMoreFragment() +
-        "\nPosition Fragment = " + this.positionFragment +
-        "\nTTL = " + this.ttl +
-        "\nProtocol = " + this.protocol +
-        "\nChecksum = " + this.checksum +
-        "\nSource IP = " + this.sourceIP +
-        "\nDestination IP = " + this.destinationIP;
+        return "\tIP version: " + this.version +
+        "\n\tIHL: " + this.internetHeaderLength * 32 / 8 + " bytes" +
+        "\n\tService: " + this.service +
+        "\n\tTotal Length: " + this.totalLength + " bytes" +
+        "\n\tIdentification: " + this.identification +
+        "\n\tFlags:" +
+        "\n\t\tDon't Fragment: " + this.flags.getDontFragment() +
+        "\n\t\tMore Fragment: " + this.flags.getMoreFragment() +
+        "\n\tPosition Fragment: " + this.positionFragment +
+        "\n\tTTL: " + this.ttl +
+        "\n\tProtocol: " + this.protocol +
+        "\n\tChecksum: " + this.checksum +
+        "\n\tSource IP: " + this.sourceIP +
+        "\n\tDestination IP: " + this.destinationIP;
     }
 
     public IPVersion getVersion() {

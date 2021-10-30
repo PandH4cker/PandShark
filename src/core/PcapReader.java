@@ -3,6 +3,8 @@ package core;
 import core.formats.Pcap;
 import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.ip.v4.IPv4Header;
+import core.headers.layer4.tcp.TCP;
+import core.headers.layer4.udp.UDP;
 import core.headers.pcap.PcapPacketHeader;
 import protocols.PcapPacketData;
 import protocols.arp.ARP;
@@ -13,6 +15,7 @@ import protocols.ftp.FTP;
 import protocols.http.HTTP;
 import protocols.icmp.ICMP;
 import utils.file.FileToHex;
+import utils.prompt.Prompt;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -24,9 +27,12 @@ public class PcapReader {
     PcapReader(final String pcapPath) {
         String hexString = FileToHex.fileToHexString(pcapPath);
         this.pcap = Pcap.fromHexString(hexString);
-        System.out.println(pcap.getData().size() + " packets red");
+        System.out.println(pcap.getData().size() + " packets read");
+    }
+
+    public void displayPackets() {
         int index = 1;
-        for (Map.Entry<PcapPacketHeader, PcapPacketData> dataEntry : pcap.getData().entrySet()) {
+        for (Map.Entry<PcapPacketHeader, PcapPacketData> dataEntry : this.pcap.getData().entrySet()) {
             PcapPacketHeader packetHeader = dataEntry.getKey();
             PcapPacketData packetData = dataEntry.getValue();
             System.out.println(
@@ -94,7 +100,94 @@ public class PcapReader {
         }
     }
 
+    public void displayHelp() {
+        System.out.println(
+                "display [frameNumber]\tDisplay all the packets read or the nth packets\n" +
+                "help\tDisplay this help prompt\n" +
+                        "exit\tQuit the program"
+        );
+    }
+
     public static void main(String[] args) {
-        new PcapReader(args[0]);
+        PcapReader reader = new PcapReader(args[0]);
+        while (true) {
+            switch (Prompt.prompt("PandShark >> ")) {
+                case "display" -> reader.displayPackets();
+                case String s && s.startsWith("display") -> {
+                    String[] splittedCmd = s.split(" ");
+                    if (splittedCmd.length >= 2) {
+                        try {
+                            int frameNumber = Integer.parseInt(splittedCmd[1]);
+                            PcapPacketData data = (PcapPacketData) reader.pcap.getData().values().toArray()[frameNumber - 1];
+                            PcapPacketHeader packetHeader = (PcapPacketHeader) reader.pcap.getData().keySet().toArray()[frameNumber - 1];
+                            System.out.println("Frame " + frameNumber + ": " +
+                                                packetHeader.getuInclLen() + " bytes on wire (" +
+                                                (packetHeader.getuInclLen() * 8) + " bits)");
+                            System.out.println("\tEncapsulation type: Ethernet (1)");
+
+                            EthernetHeader ethernetHeader = (EthernetHeader) data.getLayer2Protocol();
+                            System.out.println("** Ethernet Header **");
+                            System.out.println(ethernetHeader);
+
+                            switch (ethernetHeader.getEtherType()) {
+                                case IPV4 -> {
+                                    IPv4Header iPv4Header = (IPv4Header) data.getLayer3Protocol();
+                                    System.out.println("** IPv4 Header **");
+                                    System.out.println(iPv4Header);
+                                    switch (iPv4Header.getProtocol()) {
+                                        case ICMP -> {
+                                            ICMP icmp = (ICMP) data;
+                                            System.out.println("** ICMP Header **");
+                                            System.out.println(icmp);
+                                        }
+                                        case TCP -> {
+                                            TCP tcp = (TCP) data.getLayer4Protocol();
+                                            System.out.println("** TCP Header **");
+                                            System.out.println(tcp);
+
+                                            if (data instanceof FTP) {
+                                                System.out.println("** FTP Header **");
+                                                System.out.println("\t" + data);
+                                            } else if (data instanceof HTTP) {
+                                                System.out.println("** HTTP Header **");
+                                                System.out.println(data);
+                                            } else if (data instanceof DNS) {
+                                                System.out.println("** DNS Header **");
+                                                System.out.println(data);
+                                            }
+                                        }
+                                        case UDP -> {
+                                            UDP udp = (UDP) data.getLayer4Protocol();
+                                            System.out.println("** UDP Header **");
+                                            System.out.println(udp);
+
+                                            if (data instanceof DNS) {
+                                                System.out.println("** DNS Header **");
+                                                System.out.println(data);
+                                            } else if (data instanceof DHCP) {
+                                                System.out.println("** DHCP Header **");
+                                                System.out.println(data);
+                                            }
+                                        }
+                                    }
+                                }
+                                case ARP -> {
+                                    ARP arp = (ARP) data;
+                                    System.out.println("** ARP Header **");
+                                    System.out.println(arp);
+                                }
+                            }
+                        } catch (ArrayIndexOutOfBoundsException | NumberFormatException ignored) {
+                            reader.displayHelp();
+                        }
+                    }
+                }
+                case "exit" -> {
+                    return;
+                }
+                case "help" -> reader.displayHelp();
+                default -> reader.displayHelp();
+            }
+        }
     }
 }

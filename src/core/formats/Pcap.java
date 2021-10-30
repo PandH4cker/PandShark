@@ -91,8 +91,8 @@ public class Pcap {
         switch (pcapGlobalHeader.getuNetwork()) {
             case ETHERNET -> handleEthernet(hexString, data, pcapGlobalHeader, pcapPacketHeader);
             default -> {
-                System.err.println("Data Link Type ("+ pcapGlobalHeader.getuNetwork()+") not implemented !");
-                System.err.println("Skipping Packet Data...");
+                //System.err.println("Data Link Type ("+ pcapGlobalHeader.getuNetwork()+") not implemented !");
+                //System.err.println("Skipping Packet Data...");
                 offset += 2 * pcapPacketHeader.getuInclLen();
             }
         }
@@ -104,8 +104,8 @@ public class Pcap {
             case IPV4 -> handleIPv4(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader);
             case ARP -> handleARP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader);
             default -> {
-                System.err.println("Ether Type ("+ethernetHeader.getEtherType()+") not implemented !");
-                System.err.println("Skipping Packet Data...");
+                //System.err.println("Ether Type ("+ethernetHeader.getEtherType()+") not implemented !");
+                //System.err.println("Skipping Packet Data...");
                 offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE());
             }
         }
@@ -123,8 +123,8 @@ public class Pcap {
             case UDP -> handleUDP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header);
             case TCP -> handleTCP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header);
             default -> {
-                System.err.println("Encapsulated protocol ("+iPv4Header.getProtocol()+") not implemented !");
-                System.err.println("Skipping Packet Data...");
+                //System.err.println("Encapsulated protocol ("+iPv4Header.getProtocol()+") not implemented !");
+                //System.err.println("Skipping Packet Data...");
                 offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() - IPv4Header.getSIZE());
             }
         }
@@ -150,7 +150,7 @@ public class Pcap {
                     case "DNS" -> {
                         System.out.println("DNS over TCP");
                         Pcap.offset += 4;
-                        handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, remainingSize);
+                        handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, remainingSize, tcp);
                     }
                     default -> offset += 2 * (pcapPacketHeader.getuInclLen() -
                             EthernetHeader.getSIZE() -
@@ -176,8 +176,8 @@ public class Pcap {
         int udpPayloadLength = udp.getLength() - UDP.getSIZE();
 
         switch (ProtocolDetector.detectProtocol(hexString.substring(Pcap.offset, Pcap.offset + udpPayloadLength * 2))) {
-            case "DNS" -> handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, udpPayloadLength);
-            case "DHCP" -> handleDHCP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header);
+            case "DNS" -> handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, udpPayloadLength, udp);
+            case "DHCP" -> handleDHCP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, udp);
             default -> offset += 2 * (pcapPacketHeader.getuInclLen() -
                                       EthernetHeader.getSIZE() -
                                       IPv4Header.getSIZE() -
@@ -185,8 +185,11 @@ public class Pcap {
         }
     }
 
-    private static void handleDHCP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
-        DHCP dhcp = DHCP.readDHCP(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header);
+    private static void handleDHCP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data,
+                                   PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader,
+                                   EthernetHeader ethernetHeader, IPv4Header iPv4Header,
+                                   Layer4Protocol layer4Protocol) {
+        DHCP dhcp = DHCP.readDHCP(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header, layer4Protocol);
         dhcp.readDHCPOptions(hexString, pcapGlobalHeader, pcapPacketHeader);
         data.put(pcapPacketHeader, dhcp);
     }
@@ -197,8 +200,9 @@ public class Pcap {
                                   PcapPacketHeader pcapPacketHeader,
                                   EthernetHeader ethernetHeader,
                                   IPv4Header iPv4Header,
-                                  Integer remainingSize) {
-        DNS dns = DNS.readDns(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header);
+                                  Integer remainingSize,
+                                  Layer4Protocol layer4Protocol) {
+        DNS dns = DNS.readDns(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header, layer4Protocol);
         List<DNSQuery> queries = new LinkedList<>();
 
         Integer offTracker = 0;

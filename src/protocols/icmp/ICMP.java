@@ -68,14 +68,14 @@ public class ICMP extends PcapPacketData {
     @Override
     public String toString() {
         return new StringBuilder()
-                .append("Type/Code Combination = (")
+                .append("\tType/Code Combination: (")
                 .append(this.typeCodeCombination.getType())
                 .append(",").append(this.typeCodeCombination.getCode()).append(") ")
-                .append(this.typeCodeCombination).append("\nChecksum = ")
-                .append(this.checksum).append("\nIdentifier = ")
-                .append(this.getId()).append("\nSequence Number = ")
-                .append(this.getSequenceNumber()).append("\n")
-                .append("Data = ").append(Hexlifier.unhexlify(this.getData())).toString();
+                .append(this.typeCodeCombination).append("\n\tChecksum: ")
+                .append(this.checksum).append("\n\tIdentifier: ")
+                .append(this.getId()).append("\n\tSequence Number: ")
+                .append(this.getSequenceNumber()).append("\n\t")
+                .append("Data: ").append(Hexlifier.unhexlify(this.getData())).toString();
     }
 
     public String getData() {

@@ -91,15 +91,15 @@ public class ARP extends PcapPacketData {
 
     @Override
     public String toString() {
-        return "Hardware type = " + this.hardwareType +
-        "\nProtocol type = " + this.protocolType +
-        "\nHardware size = " + this.hardwareAddressLength +
-        "\nProtocol size = " + this.protocolAddressLength +
-        "\nOpcode = " + this.operation +
-        "\nSender MAC Address = " + this.senderHardwareAddress +
-        "\nSender IP Address = " + this.senderInternetAddress +
-        "\nTarget MAC Address = " + this.targetHardwareAddress +
-        "\nTarget IP Address = " + this.targetInternetAddress;
+        return "\tHardware type: " + this.hardwareType +
+        "\n\tProtocol type: " + this.protocolType +
+        "\n\tHardware size: " + this.hardwareAddressLength +
+        "\n\tProtocol size: " + this.protocolAddressLength +
+        "\n\tOpcode: " + this.operation +
+        "\n\tSender MAC Address: " + this.senderHardwareAddress +
+        "\n\tSender IP Address: " + this.senderInternetAddress +
+        "\n\tTarget MAC Address: " + this.targetHardwareAddress +
+        "\n\tTarget IP Address: " + this.targetInternetAddress;
     }
 
     public String getInfo() {

@@ -91,21 +91,21 @@ public class TCP implements Layer4Protocol {
 
     @Override
     public String toString() {
-        return "Source Port = " + this.sourcePort +
-        "\nDestination Port = " + this.destinationPort +
-        "\nSequence Number = " + this.sequence +
-        "\nAck Number = " + this.ackNumber +
-        "\nOffset = " + this.offset +
-        "\nTCP Flags = " +
-        "\n\tURG = " + this.flags.getUrg() +
-        "\n\tACK = " + this.flags.getAck() +
-        "\n\tPSH = " + this.flags.getPsh() +
-        "\n\tRST = " + this.flags.getRst() +
-        "\n\tSYN = " + this.flags.getSyn() +
-        "\n\tFIN = " + this.flags.getFin() +
-        "\nWindow = " + this.window +
-        "\nChecksum = " + this.checksum +
-        "\nPointer = " + this.pointer;
+        return "\tSource Port = " + this.sourcePort +
+        "\n\tDestination Port = " + this.destinationPort +
+        "\n\tSequence Number = " + this.sequence +
+        "\n\tAck Number = " + this.ackNumber +
+        "\n\tOffset = " + this.offset +
+        "\n\tTCP Flags = " +
+        "\n\t\tURG = " + this.flags.getUrg() +
+        "\n\t\tACK = " + this.flags.getAck() +
+        "\n\t\tPSH = " + this.flags.getPsh() +
+        "\n\t\tRST = " + this.flags.getRst() +
+        "\n\t\tSYN = " + this.flags.getSyn() +
+        "\n\t\tFIN = " + this.flags.getFin() +
+        "\n\tWindow = " + this.window +
+        "\n\tChecksum = " + this.checksum +
+        "\n\tPointer = " + this.pointer;
     }
 
     public static Integer getSIZE() {
