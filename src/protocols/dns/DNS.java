@@ -16,6 +16,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class DNS extends PcapPacketData {
+    private static final Integer SIZE = 12;
+
     private String identifier;
     private DNSFlags dnsFlags;
     private Integer qdCount;
@@ -62,6 +64,10 @@ public class DNS extends PcapPacketData {
 
         this.queries = new LinkedList<>();
         this.answers = new LinkedList<>();
+    }
+
+    public static Integer getSIZE() {
+        return SIZE;
     }
 
     public static DNS readDns(String hexString, PcapGlobalHeader pcapGlobalHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {

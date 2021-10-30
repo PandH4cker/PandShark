@@ -2,6 +2,8 @@ package core.formats;
 
 import core.headers.layer2.ethernet.EthernetHeader;
 import core.headers.layer3.ip.v4.IPv4Header;
+import core.headers.layer4.Layer4Protocol;
+import core.headers.layer4.ProtocolDetector;
 import core.headers.layer4.tcp.TCP;
 import core.headers.layer4.udp.UDP;
 import core.headers.pcap.LinkLayerHeader;
@@ -140,17 +142,23 @@ public class Pcap {
                 IPv4Header.getSIZE() -
                 TCP.getSIZE() - (tcp.getOffset() > TCP.getSIZE() ? tcp.getOffset() - TCP.getSIZE() : 0);
 
-        //TODO Detect the protocol
-
-        if (remainingSize != 0 && (tcp.getSourcePort() == 21 || tcp.getDestinationPort() == 21))
-                handleFTP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, tcp, remainingSize);
-        else if (remainingSize != 0 && (tcp.getSourcePort() == 80 || tcp.getDestinationPort() == 80))
-                handleHTTP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, tcp, remainingSize);
-        else
-            offset += 2 * (pcapPacketHeader.getuInclLen() -
-                    EthernetHeader.getSIZE() -
-                    IPv4Header.getSIZE() -
-                    TCP.getSIZE() - (tcp.getOffset() > TCP.getSIZE() ? tcp.getOffset() - TCP.getSIZE() : 0));
+        switch (ProtocolDetector.detectProtocol(Hexlifier.unhexlify(hexString.substring(Pcap.offset, Pcap.offset + remainingSize * 2)))) {
+            case "FTP" -> handleFTP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, tcp, remainingSize);
+            case "HTTP" -> handleHTTP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, tcp, remainingSize);
+            default -> {
+                switch (ProtocolDetector.detectProtocol(hexString.substring(Pcap.offset, Pcap.offset + remainingSize * 2))) {
+                    case "DNS" -> {
+                        System.out.println("DNS over TCP");
+                        Pcap.offset += 4;
+                        handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, remainingSize);
+                    }
+                    default -> offset += 2 * (pcapPacketHeader.getuInclLen() -
+                            EthernetHeader.getSIZE() -
+                            IPv4Header.getSIZE() -
+                            TCP.getSIZE() - (tcp.getOffset() > TCP.getSIZE() ? tcp.getOffset() - TCP.getSIZE() : 0));
+                }
+            }
+        }
     }
 
     private static void handleHTTP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header, TCP tcp, int size) {
@@ -160,24 +168,22 @@ public class Pcap {
 
     private static void handleFTP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header, TCP tcp, int size) {
         FTP ftp = FTP.readFtp(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header, tcp, size);
+        System.out.println(ftp);
         data.put(pcapPacketHeader, ftp);
     }
 
     private static void handleUDP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
         UDP udp = UDP.readUdp(hexString, pcapGlobalHeader);
-        //TODO Detect the protocol
-        if (udp.getSourcePort() == 53 || udp.getDestinationPort() == 53)
-            handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header);
-        else if (udp.getSourcePort() == 68 || udp.getDestinationPort() == 68) {
-            handleDHCP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header);
-            /*for (DHCPOption option : dhcp.getOption())
-                System.out.println(option);*/
+        int udpPayloadLength = udp.getLength() - UDP.getSIZE();
+
+        switch (ProtocolDetector.detectProtocol(hexString.substring(Pcap.offset, Pcap.offset + udpPayloadLength * 2))) {
+            case "DNS" -> handleDNS(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header, udpPayloadLength);
+            case "DHCP" -> handleDHCP(hexString, data, pcapGlobalHeader, pcapPacketHeader, ethernetHeader, iPv4Header);
+            default -> offset += 2 * (pcapPacketHeader.getuInclLen() -
+                                      EthernetHeader.getSIZE() -
+                                      IPv4Header.getSIZE() -
+                                      UDP.getSIZE());
         }
-        else
-            offset += 2 * (pcapPacketHeader.getuInclLen() -
-                    EthernetHeader.getSIZE() -
-                    IPv4Header.getSIZE() -
-                    UDP.getSIZE());
     }
 
     private static void handleDHCP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
@@ -186,7 +192,13 @@ public class Pcap {
         data.put(pcapPacketHeader, dhcp);
     }
 
-    private static void handleDNS(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
+    private static void handleDNS(String hexString,
+                                  LinkedHashMap<PcapPacketHeader, PcapPacketData> data,
+                                  PcapGlobalHeader pcapGlobalHeader,
+                                  PcapPacketHeader pcapPacketHeader,
+                                  EthernetHeader ethernetHeader,
+                                  IPv4Header iPv4Header,
+                                  Integer remainingSize) {
         DNS dns = DNS.readDns(hexString, pcapGlobalHeader, ethernetHeader, iPv4Header);
         List<DNSQuery> queries = new LinkedList<>();
 
@@ -318,10 +330,10 @@ public class Pcap {
                 answers.add(answer);
             }
         dns.setAnswers(answers);
+        //System.out.println(dns);
 
         data.put(pcapPacketHeader, dns);
-        offset += 2 * (pcapPacketHeader.getuInclLen() - EthernetHeader.getSIZE() -
-                IPv4Header.getSIZE() - UDP.getSIZE() - 12 - offTracker);
+        offset += 2 * (remainingSize - DNS.getSIZE() - offTracker);
     }
 
     private static void handleICMP(String hexString, LinkedHashMap<PcapPacketHeader, PcapPacketData> data, PcapGlobalHeader pcapGlobalHeader, PcapPacketHeader pcapPacketHeader, EthernetHeader ethernetHeader, IPv4Header iPv4Header) {
