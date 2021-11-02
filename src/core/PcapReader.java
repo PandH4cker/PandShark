@@ -14,6 +14,7 @@ import protocols.dns.DNS;
 import protocols.ftp.FTP;
 import protocols.http.HTTP;
 import protocols.icmp.ICMP;
+import utils.date.DateArithmetic;
 import utils.file.FileToHex;
 import utils.prompt.Prompt;
 
@@ -94,7 +95,7 @@ public class PcapReader {
                             };
                         }
                         default -> null;
-                    }
+                    } + "\t" + DateArithmetic.fromTimestamp(packetHeader.getuTsSec())
             );
             ++index;
         }

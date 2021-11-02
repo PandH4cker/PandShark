@@ -5,16 +5,46 @@ PandShark is a tool designed to analyze/read pcap files.
 
 It can parse from **PCAP** file format:
 
+PandShark, in its minimal display, will always print:
+* _Packet index_ (from the list of read packets)
+* _IP/MAC address_
+* _Protocol_
+* _Packet Length_
+* _Date_
+
+
 * **ARP**
+  * **Printed Fields**:
+    * _ARP Info_ (i.e. Who has 24.166.175.220? Tell 69.76.216.1), useful for the comprehension.
 * **DHCP**
+  * _Printed Fields_:
+    * _Message Type (Discover, Offer...)_, useful for understanding the request/response.
+    * _Transaction ID_, useful for following the response/request.
 * **DNS**
+  * _Printed Fields_:
+    * _DNS Query Type (i.e. Standard Query...)_, useful for understanding the type of the query.
+    * _Query ID_, useful for following the response/request.
+    * _Query Class_, useful for understanding the response needed to be given then.
+    * _DNS Query Name_, useful for reading which server are we requesting.
+      * For each **DNS Answers (A, AAAA, CNAME...)**:
+        * Print the information about the answer
 * **FTP**
+  * _FTP Message with indication about Request/Response_, useful for reading the message sent and received.
 * **HTTP**
+  * _HTTP Message split on CRLF_, useful for reading the message sent and received.
 * **ICMP**
+  * **Printed Fields**:
+    * _Type/Code Combination (i.e. Echo Reply/Echo Request)_, useful for determining the purpose of the ICMP packet.
+    * _ID_, useful since the ID could reference in certain cases the PID of the process sending the packet.
+    * _Sequence Number_, useful in order to determine if we lost packets.
+    * _Time To Live_, useful in case you want to fingerprint the OS of the sender/receiver (**From IPV4**).
 * **ETHERNET**
 * **TCP**
 * **UDP**
 * **IPV4**
+
+In its verbose mode (_display nth_), every protocol header about a specific 
+packet and all their info are printed to visualize all fields.
 
 Moreover, it includes a [protocol detection system](https://github.com/MrrRaph/PandShark/blob/master/src/core/headers/layer4/ProtocolDetector.java) 
 in order to detect protocols encapsulated into TCP/UDP frames.
@@ -32,6 +62,8 @@ git clone git@github.com:MrrRaph/PandShark.git
 Then run the main class **PcapReader** in src.core.PcapReader.
 
 ## Usage:
+Give a pcap as an argument to PandShark.
+
 PandShark give you a prompt in order to navigate through the packets:
 ```
 1426 packets read

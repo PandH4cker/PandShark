@@ -1,6 +1,7 @@
 package core.headers.pcap;
 
 import core.formats.Pcap;
+import utils.date.DateArithmetic;
 
 import java.util.Date;
 
@@ -32,7 +33,7 @@ public class PcapPacketHeader {
     @Override
     public String toString() {
         return "** Packet Header **\n" +
-                "Timestamp (s) = " + uTsSec + " ("+ new Date((long)this.uTsSec * 1000) + ")" +
+                "Timestamp (s) = " + uTsSec + " ("+ DateArithmetic.fromTimestamp(this.uTsSec) + ")" +
                 "\nTimestamp (µs) = " + this.uTsUsec +
                 "\nIncluded Length = " + this.uInclLen + " bytes" +
                 "\nOriginal Length = " + this.uOrigLen + " bytes";
